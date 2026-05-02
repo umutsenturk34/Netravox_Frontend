@@ -38,8 +38,8 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const user = await login(form.email, form.password, tenantSlug || undefined);
-      if (!user.mustChangePassword) navigate('/dashboard');
+      await login(form.email, form.password, tenantSlug || undefined);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Giriş yapılamadı');
     } finally {
