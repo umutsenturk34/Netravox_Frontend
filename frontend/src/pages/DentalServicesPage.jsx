@@ -551,12 +551,26 @@ export default function DentalServicesPage() {
                   </p>
                 )}
               </div>
-              <Input
-                label="Ürün Kodu (SKU)"
-                value={form.sku}
-                onChange={(e) => set('sku', e.target.value)}
-                placeholder="VLT-001"
-              />
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                  Ürün Kodu (SKU)
+                </label>
+                {editing ? (
+                  <div
+                    className="w-full rounded-lg px-3.5 py-2.5 border font-mono text-sm select-all"
+                    style={{ background: 'var(--bg-muted)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+                  >
+                    {form.sku || '—'}
+                  </div>
+                ) : (
+                  <div
+                    className="w-full rounded-lg px-3.5 py-2.5 border text-sm italic"
+                    style={{ background: 'var(--bg-muted)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+                  >
+                    Kayıt sonrası otomatik oluşturulur
+                  </div>
+                )}
+              </div>
             </div>
             {allCategories.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
