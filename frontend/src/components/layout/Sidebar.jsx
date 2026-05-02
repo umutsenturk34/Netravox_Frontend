@@ -58,10 +58,11 @@ export default function Sidebar() {
         if (!item.sectors.includes(activeCompany.sector)) return false;
       }
     }
-    // Modül kısıtı — Company.modules boşsa hepsi açık, doluysa sadece listede olanlar
+    // Modül kısıtı — modules boş = hepsi kapalı, ['*'] = hepsi açık, liste = sadece listedekiler
     if (!isPrivileged && item.module && item.module !== 'dashboard') {
       const modules = activeCompany?.modules;
-      if (modules && modules.length > 0 && !modules.includes(item.module)) return false;
+      if (!modules || modules.length === 0) return false;
+      if (!modules.includes('*') && !modules.includes(item.module)) return false;
     }
     // Ajans kullanıcısı modül filtresi (superAdmin hariç) — agencyModules'e göre
     if (user?.isAgencyUser && !user?.isSuperAdmin && item.module && item.module !== 'dashboard') {

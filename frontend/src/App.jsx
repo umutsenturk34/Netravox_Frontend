@@ -33,11 +33,14 @@ import PopupsPage from './pages/PopupsPage';
 import AuditLogPage from './pages/AuditLogPage';
 
 import PanelLayout from './components/layout/PanelLayout';
+import ForcePasswordChangePage from './pages/ForcePasswordChangePage';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>;
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <ForcePasswordChangePage />;
+  return children;
 };
 
 const SuperAdminRoute = ({ children }) => {

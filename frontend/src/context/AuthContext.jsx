@@ -40,11 +40,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
+  const login = async (email, password, tenantSlug) => {
+    const payload = { email, password };
+    if (tenantSlug) payload.tenantSlug = tenantSlug;
+    const { data } = await api.post('/auth/login', payload);
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     setUser(data.user);
+
+    if (data.user.mustChangePassword) return data.user;
 
     // İlk tenant'ı otomatik seç
     const firstTenant = data.user.companyRoles?.[0]?.tenantId;
@@ -54,6 +58,11 @@ export const AuthProvider = ({ children }) => {
       await fetchCompany(firstTenant);
     }
     return data.user;
+  };
+
+  const clearMustChangePassword = () => {
+    setUser((u) => u ? { ...u, mustChangePassword: false } : u);
+    localStorage.clear();
   };
 
   const logout = async () => {
@@ -71,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, activeTenantId, activeCompany, companyLoading, loading, login, logout, switchTenant }}>
+    <AuthContext.Provider value={{ user, activeTenantId, activeCompany, companyLoading, loading, login, logout, switchTenant, clearMustChangePassword }}>
       {children}
     </AuthContext.Provider>
   );
