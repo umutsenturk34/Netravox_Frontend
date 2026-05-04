@@ -81,12 +81,11 @@ export default function LoginPage() {
               className="h-14 w-auto object-contain mb-4"
             />
           ) : (
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
-            >
-              <span className="text-white text-2xl font-bold">N</span>
-            </div>
+            <img
+              src="/logo-dark.svg"
+              alt="Netravox"
+              className="h-10 w-auto object-contain mb-4"
+            />
           )}
           <h1 className="text-xl font-bold text-white tracking-tight">{displayName}</h1>
           {tenantSlug && !tenantLoading && !tenant && (

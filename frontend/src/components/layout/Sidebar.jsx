@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   LayoutDashboard, FileText, Image, Menu, UtensilsCrossed,
   HeartPulse, Building2, Calendar, Mail, Bell, Search,
@@ -43,6 +44,7 @@ const adminItems = [
 
 export default function Sidebar() {
   const { user, activeCompany, companyLoading } = useAuth();
+  const { theme } = useTheme();
 
   const isPrivileged = user?.isSuperAdmin || user?.isAgencyUser;
 
@@ -81,20 +83,14 @@ export default function Sidebar() {
     >
       {/* Marka alanı */}
       <div
-        className="h-14 flex items-center px-5 border-b gap-2.5"
+        className="h-14 flex items-center px-4 border-b"
         style={{ borderColor: 'var(--border)' }}
       >
-        <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
-          <span className="text-white text-xs font-bold">N</span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-sm font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            Netravox
-          </span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 leading-none">
-            CMS
-          </span>
-        </div>
+        <img
+          src={theme === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+          alt="Netravox"
+          className="h-7 w-auto object-contain"
+        />
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
