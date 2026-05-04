@@ -61,8 +61,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const clearMustChangePassword = () => {
-    setUser((u) => u ? { ...u, mustChangePassword: false } : u);
     localStorage.clear();
+    setUser(null);
+    setActiveTenantId(null);
+    setActiveCompany(null);
   };
 
   const logout = async () => {
