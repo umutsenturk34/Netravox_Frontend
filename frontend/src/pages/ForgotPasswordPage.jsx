@@ -39,15 +39,17 @@ export default function ForgotPasswordPage() {
             Şifremi Unuttum
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            E-posta adresinizi girin, size sıfırlama bağlantısı gönderelim.
+            E-posta adresinizi girin, size geçici şifre gönderelim.
           </p>
         </div>
 
         {sent ? (
           <div className="rounded-lg p-4 text-sm" style={{ background: '#F0FDF4', color: '#166534' }}>
-            Bağlantı gönderildi. E-posta kutunuzu kontrol edin.
+            Geçici şifreniz e-posta adresinize gönderildi.
             <br />
-            <span style={{ color: 'var(--text-muted)' }}>Gelen kutunuzda göremiyorsanız spam klasörünü kontrol edin.</span>
+            <span style={{ color: '#166534' }}>Giriş yaptıktan sonra yeni şifrenizi belirlemeniz istenecektir.</span>
+            <br />
+            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Gelen kutunuzda göremiyorsanız spam klasörünü kontrol edin.</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,7 +64,7 @@ export default function ForgotPasswordPage() {
             />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <Button type="submit" disabled={loading || !email} className="w-full">
-              {loading ? 'Gönderiliyor...' : 'Sıfırlama Bağlantısı Gönder'}
+              {loading ? 'Gönderiliyor...' : 'Geçici Şifre Gönder'}
             </Button>
           </form>
         )}
