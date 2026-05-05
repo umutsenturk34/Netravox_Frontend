@@ -440,12 +440,12 @@ export default function CompaniesPage() {
 function SecurityTab({ company }) {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [totpRequired, setTotpRequired] = useState(company.security?.totpRequired ?? false);
+  const [otpRequired, setOtpRequired] = useState(company.security?.otpRequired ?? false);
 
   const mutation = useMutation({
-    mutationFn: (val) => api.patch(`/companies/${company._id}/security`, { totpRequired: val }).then((r) => r.data),
+    mutationFn: (val) => api.patch(`/companies/${company._id}/security`, { otpRequired: val }).then((r) => r.data),
     onSuccess: (data) => {
-      setTotpRequired(data.security.totpRequired);
+      setOtpRequired(data.security.otpRequired);
       qc.invalidateQueries({ queryKey: ['companies'] });
       toast.success('Güvenlik ayarları kaydedildi');
     },
@@ -473,22 +473,22 @@ function SecurityTab({ company }) {
           </div>
         </div>
         <button
-          onClick={() => mutation.mutate(!totpRequired)}
+          onClick={() => mutation.mutate(!otpRequired)}
           disabled={mutation.isPending}
           className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4"
-          style={{ background: totpRequired ? '#6366f1' : 'var(--border)' }}
+          style={{ background: otpRequired ? '#6366f1' : 'var(--border)' }}
         >
           <span
             className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
-            style={{ transform: totpRequired ? 'translateX(20px)' : 'translateX(0)' }}
+            style={{ transform: otpRequired ? 'translateX(20px)' : 'translateX(0)' }}
           />
         </button>
       </div>
 
-      {totpRequired && (
+      {otpRequired && (
         <div className="rounded-xl px-4 py-3 text-xs"
           style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--text-muted)' }}>
-          2FA aktif — Bu firmaya yeni giriş yapan kullanıcılar Google Authenticator kurulumunu tamamlamak zorunda kalacak.
+          2FA aktif — Bu firmanın kullanıcıları her girişte e-postalarına gelen 6 haneli kodu girmek zorunda kalacak.
         </div>
       )}
     </div>

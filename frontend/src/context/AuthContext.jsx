@@ -45,8 +45,8 @@ export const AuthProvider = ({ children }) => {
     if (tenantSlug) payload.tenantSlug = tenantSlug;
     const { data } = await api.post('/auth/login', payload);
 
-    // TOTP gerekiyorsa token set etme, LoginPage handle eder
-    if (data.totpRequired || data.totpSetupRequired) return data;
+    // Email OTP gerekiyorsa token set etme, LoginPage handle eder
+    if (data.otpRequired) return data;
 
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);

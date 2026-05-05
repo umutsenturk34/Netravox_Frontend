@@ -27,11 +27,11 @@ export default function LoginPage() {
   const { login, finalizeLogin } = useAuth();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState('credentials'); // credentials | totp | totpSetup
-  const [totpToken, setTotpToken] = useState('');
+  const [step, setStep] = useState('credentials'); // credentials | otp
+  const [otpToken, setOtpToken] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
   const [form, setForm] = useState({ email: '', password: '' });
   const [code, setCode] = useState('');
-  const [qrDataUrl, setQrDataUrl] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [tenant, setTenant] = useState(null);
@@ -50,9 +50,7 @@ export default function LoginPage() {
   }, [tenantSlug]);
 
   useEffect(() => {
-    if (step === 'totp' || step === 'totpSetup') {
-      setTimeout(() => codeRef.current?.focus(), 100);
-    }
+    if (step === 'otp') setTimeout(() => codeRef.current?.focus(), 100);
   }, [step]);
 
   const handleCredentials = async (e) => {
@@ -62,20 +60,12 @@ export default function LoginPage() {
     try {
       const result = await login(form.email, form.password, tenantSlug || undefined);
 
-      if (result?.totpSetupRequired) {
-        setTotpToken(result.totpToken);
-        // QR oluştur
-        const { data } = await api.get('/auth/totp/setup', {
-          headers: { Authorization: `Bearer ${result.totpToken}` },
-        });
-        setQrDataUrl(data.qrDataUrl);
-        setStep('totpSetup');
-        return;
-      }
-
-      if (result?.totpRequired) {
-        setTotpToken(result.totpToken);
-        setStep('totp');
+      if (result?.otpRequired) {
+        setOtpToken(result.otpToken);
+        // E-postayı maskele: ab***@gmail.com
+        const [local, domain] = form.email.split('@');
+        setMaskedEmail(`${local.slice(0, 2)}***@${domain}`);
+        setStep('otp');
         return;
       }
 
@@ -92,41 +82,14 @@ export default function LoginPage() {
     }
   };
 
-  const handleTotpLogin = async (e) => {
+  const handleOtp = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/totp/login', { totpToken, code });
+      const { data } = await api.post('/auth/otp/verify', { otpToken, code });
       const user = await finalizeLogin(data);
-      if (user?.mustChangePassword) {
-        navigate('/force-password-change');
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Kod hatalı');
-      setCode('');
-      codeRef.current?.focus();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleTotpSetupConfirm = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const { data } = await api.post('/auth/totp/setup/confirm', { code }, {
-        headers: { Authorization: `Bearer ${totpToken}` },
-      });
-      const user = await finalizeLogin(data);
-      if (user?.mustChangePassword) {
-        navigate('/force-password-change');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate(user?.mustChangePassword ? '/force-password-change' : '/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Kod hatalı');
       setCode('');
@@ -190,9 +153,7 @@ export default function LoginPage() {
                     type="email" required value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                    style={inputStyle}
-                    placeholder="ornek@email.com"
-                    autoComplete="email"
+                    style={inputStyle} placeholder="ornek@email.com" autoComplete="email"
                     onFocus={(e) => Object.assign(e.target.style, inputFocus)}
                     onBlur={(e) => Object.assign(e.target.style, inputStyle)}
                   />
@@ -204,9 +165,7 @@ export default function LoginPage() {
                     type="password" required value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                    style={inputStyle}
-                    placeholder="••••••••"
-                    autoComplete="current-password"
+                    style={inputStyle} placeholder="••••••••" autoComplete="current-password"
                     onFocus={(e) => Object.assign(e.target.style, inputFocus)}
                     onBlur={(e) => Object.assign(e.target.style, inputStyle)}
                   />
@@ -223,83 +182,42 @@ export default function LoginPage() {
             </>
           )}
 
-          {/* ── Adım 2: TOTP Kod Girişi ── */}
-          {step === 'totp' && (
+          {/* ── Adım 2: Email OTP ── */}
+          {step === 'otp' && (
             <>
               <div className="flex flex-col items-center mb-6">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
                   style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}>
-                  <span className="text-2xl">🔐</span>
+                  <span className="text-2xl">✉️</span>
                 </div>
-                <p className="text-white font-semibold">İki Faktörlü Doğrulama</p>
-                <p className="text-xs mt-1 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                  Google Authenticator uygulamasındaki 6 haneli kodu girin
+                <p className="text-white font-semibold">E-posta Doğrulaması</p>
+                <p className="text-xs mt-1.5 text-center leading-relaxed"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  <span className="font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>{maskedEmail}</span>
+                  {' '}adresine 6 haneli doğrulama kodu gönderdik.
                 </p>
               </div>
-              <form onSubmit={handleTotpLogin} className="space-y-4">
+              <form onSubmit={handleOtp} className="space-y-4">
                 <input
                   ref={codeRef}
                   type="text" inputMode="numeric" pattern="[0-9]{6}"
                   maxLength={6} required value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full rounded-xl px-4 py-3 text-center text-2xl font-mono font-bold outline-none transition-all tracking-widest"
-                  style={inputStyle}
-                  placeholder="000000"
-                  autoComplete="one-time-code"
+                  className="w-full rounded-xl px-4 py-3 text-center text-3xl font-mono font-bold outline-none transition-all tracking-widest"
+                  style={inputStyle} placeholder="000000" autoComplete="one-time-code"
                   onFocus={(e) => Object.assign(e.target.style, inputFocus)}
                   onBlur={(e) => Object.assign(e.target.style, inputStyle)}
                 />
                 {error && <ErrorBox message={error} />}
                 <SubmitButton loading={loading} label="Doğrula" loadingLabel="Doğrulanıyor..." />
               </form>
-              <button onClick={() => { setStep('credentials'); setError(''); setCode(''); }}
+              <button
+                onClick={() => { setStep('credentials'); setError(''); setCode(''); }}
                 className="w-full mt-3 text-xs transition-colors hover:text-indigo-400"
-                style={{ color: 'rgba(255,255,255,0.35)' }}>
+                style={{ color: 'rgba(255,255,255,0.35)' }}
+              >
                 ← Geri dön
               </button>
-            </>
-          )}
-
-          {/* ── Adım 3: TOTP İlk Kurulum ── */}
-          {step === 'totpSetup' && (
-            <>
-              <div className="flex flex-col items-center mb-5">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                  style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}>
-                  <span className="text-2xl">📱</span>
-                </div>
-                <p className="text-white font-semibold">2FA Kurulumu</p>
-                <p className="text-xs mt-1 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                  Google Authenticator ile QR kodu okutun
-                </p>
-              </div>
-              {qrDataUrl && (
-                <div className="flex justify-center mb-5">
-                  <div className="p-3 rounded-xl bg-white">
-                    <img src={qrDataUrl} alt="QR Kod" className="w-40 h-40" />
-                  </div>
-                </div>
-              )}
-              <form onSubmit={handleTotpSetupConfirm} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}>Doğrulama Kodu</label>
-                  <input
-                    ref={codeRef}
-                    type="text" inputMode="numeric" pattern="[0-9]{6}"
-                    maxLength={6} required value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full rounded-xl px-4 py-3 text-center text-2xl font-mono font-bold outline-none transition-all tracking-widest"
-                    style={inputStyle}
-                    placeholder="000000"
-                    autoComplete="one-time-code"
-                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                    onBlur={(e) => Object.assign(e.target.style, inputStyle)}
-                  />
-                </div>
-                {error && <ErrorBox message={error} />}
-                <SubmitButton loading={loading} label="2FA'yı Etkinleştir" loadingLabel="Etkinleştiriliyor..." />
-              </form>
             </>
           )}
         </div>
