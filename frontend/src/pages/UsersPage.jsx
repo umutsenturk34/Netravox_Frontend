@@ -33,6 +33,13 @@ const ALL_MODULES = [
   { id: 'audit',           label: 'Audit Log' },
 ];
 
+const ADMIN_MODULES = [
+  { id: 'admin:companies', label: 'Firma Yönetimi (aktif/pasif, özellikler)' },
+  { id: 'admin:users',     label: 'Kullanıcı Yönetimi (oluştur, şifre sıfırla)' },
+  { id: 'admin:smtp',      label: 'SMTP Ayarları' },
+  { id: 'admin:security',  label: 'Güvenlik Ayarları (OTP zorunluluğu)' },
+];
+
 const EXCLUDED_ROLES = ['super_admin', 'agency_admin'];
 const emptyTenantForm = { name: '', email: '', password: '', roleId: '' };
 const emptyAgencyForm = { name: '', email: '', password: '', allModulesAccess: false, agencyModules: [] };
@@ -352,18 +359,36 @@ export default function UsersPage() {
                 <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Tüm modüllere erişim</span>
               </label>
               {!agencyForm.allModulesAccess && (
-                <div className="grid grid-cols-2 gap-1 max-h-56 overflow-y-auto pr-1">
-                  {ALL_MODULES.map((m) => (
-                    <label key={m.id} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-[var(--bg-muted)]">
-                      <input
-                        type="checkbox"
-                        checked={agencyForm.agencyModules.includes(m.id)}
-                        onChange={() => toggleModule(m.id)}
-                        className="w-3.5 h-3.5 rounded accent-indigo-600"
-                      />
-                      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{m.label}</span>
-                    </label>
-                  ))}
+                <div className="max-h-72 overflow-y-auto pr-1 space-y-3">
+                  <div className="grid grid-cols-2 gap-1">
+                    {ALL_MODULES.map((m) => (
+                      <label key={m.id} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-[var(--bg-muted)]">
+                        <input
+                          type="checkbox"
+                          checked={agencyForm.agencyModules.includes(m.id)}
+                          onChange={() => toggleModule(m.id)}
+                          className="w-3.5 h-3.5 rounded accent-indigo-600"
+                        />
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{m.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-1.5 px-2" style={{ color: 'var(--text-muted, rgba(255,255,255,0.35))' }}>Yönetici Yetkileri</p>
+                    <div className="grid grid-cols-1 gap-1">
+                      {ADMIN_MODULES.map((m) => (
+                        <label key={m.id} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-[var(--bg-muted)]">
+                          <input
+                            type="checkbox"
+                            checked={agencyForm.agencyModules.includes(m.id)}
+                            onChange={() => toggleModule(m.id)}
+                            className="w-3.5 h-3.5 rounded accent-indigo-600"
+                          />
+                          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{m.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

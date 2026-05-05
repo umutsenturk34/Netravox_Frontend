@@ -124,8 +124,14 @@ function ModulesTab({ company, onSaved }) {
 }
 
 function UsersTab({ company }) {
+  const { user: authUser } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
+
+  const canManageUsers =
+    authUser?.isSuperAdmin ||
+    (authUser?.isAgencyUser &&
+      (authUser?.agencyModules?.includes('*') || authUser?.agencyModules?.includes('admin:users')));
   const [showCreate, setShowCreate] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', roleId: '' });
   const [generatedPwd, setGeneratedPwd] = useState(null);
@@ -221,13 +227,15 @@ function UsersTab({ company }) {
                         >
                           {u.isActive ? 'Pasife al' : 'Aktifleştir'}
                         </button>
-                        <button
-                          onClick={() => resetPassword.mutate(u._id)}
-                          disabled={resetPassword.isPending}
-                          className="text-xs px-2 py-1 rounded text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
-                        >
-                          Şifre sıfırla
-                        </button>
+                        {canManageUsers && (
+                          <button
+                            onClick={() => resetPassword.mutate(u._id)}
+                            disabled={resetPassword.isPending}
+                            className="text-xs px-2 py-1 rounded text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                          >
+                            Şifre sıfırla
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -245,7 +253,7 @@ function UsersTab({ company }) {
         </div>
       )}
 
-      {showCreate ? (
+      {canManageUsers && (showCreate ? (
         <div className="p-4 rounded-xl border space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
           <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Yeni Kullanıcı</p>
           <Input label="Ad Soyad" value={newUser.name} onChange={(e) => setNewUser((p) => ({ ...p, name: e.target.value }))} placeholder="Ad Soyad" />
@@ -265,7 +273,7 @@ function UsersTab({ company }) {
         <Button variant="secondary" size="sm" onClick={() => setShowCreate(true)}>
           <Plus size={14} className="mr-1" /> Kullanıcı Ekle
         </Button>
-      )}
+      ))}
     </div>
   );
 }
@@ -280,7 +288,16 @@ export default function CompaniesPage() {
   const [manageTab, setManageTab] = useState('modules');
   const [form, setForm] = useState({ name: '', slug: '', sector: 'other' });
 
-  if (!user?.isSuperAdmin) {
+  const hasAdminModule = (mod) =>
+    user?.isSuperAdmin ||
+    (user?.isAgencyUser &&
+      (user?.agencyModules?.includes('*') || user?.agencyModules?.includes(mod)));
+
+  const canAccessPage =
+    user?.isSuperAdmin ||
+    (user?.isAgencyUser && user?.agencyModules?.some((m) => m === '*' || m.startsWith('admin:')));
+
+  if (!canAccessPage) {
     return <p style={{ color: 'var(--text-muted)' }}>Bu sayfaya erişim yetkiniz yok.</p>;
   }
 
@@ -325,7 +342,9 @@ export default function CompaniesPage() {
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Firma Yönetimi</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Firmalar, modüller ve kullanıcılar</p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>+ Firma Ekle</Button>
+        {user?.isSuperAdmin && (
+          <Button onClick={() => setShowCreateModal(true)}>+ Firma Ekle</Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -359,16 +378,18 @@ export default function CompaniesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleCompanyActive.mutate({ id: c._id, isActive: !c.isActive })}
-                    className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
-                      c.isActive
-                        ? 'border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
-                        : 'border-green-200 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30'
-                    }`}
-                  >
-                    {c.isActive ? 'Pasife Al' : 'Aktifleştir'}
-                  </button>
+                  {hasAdminModule('admin:companies') && (
+                    <button
+                      onClick={() => toggleCompanyActive.mutate({ id: c._id, isActive: !c.isActive })}
+                      className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                        c.isActive
+                          ? 'border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
+                          : 'border-green-200 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30'
+                      }`}
+                    >
+                      {c.isActive ? 'Pasife Al' : 'Aktifleştir'}
+                    </button>
+                  )}
                   <button
                     onClick={() => openManage(c)}
                     className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg hover:bg-[var(--bg-muted)] transition-colors"
@@ -436,10 +457,10 @@ export default function CompaniesPage() {
           <div>
             <div className="flex gap-1 p-1 rounded-lg mb-5 w-fit" style={{ background: 'var(--bg-muted)' }}>
               {[
-                { id: 'modules', label: 'Modüller', icon: Package },
-                { id: 'users', label: 'Kullanıcılar', icon: Users },
-                { id: 'security', label: 'Güvenlik', icon: ShieldCheck },
-              ].map(({ id, label, icon: Icon }) => (
+                { id: 'modules', label: 'Modüller', icon: Package, always: true },
+                { id: 'users', label: 'Kullanıcılar', icon: Users, adminMod: 'admin:users' },
+                { id: 'security', label: 'Güvenlik', icon: ShieldCheck, adminMod: 'admin:security' },
+              ].filter((t) => t.always || hasAdminModule(t.adminMod)).map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   onClick={() => setManageTab(id)}

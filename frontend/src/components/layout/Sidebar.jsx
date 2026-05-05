@@ -122,7 +122,7 @@ export default function Sidebar() {
           </NavLink>
         ))}
 
-        {user?.isSuperAdmin && (
+        {(user?.isSuperAdmin || (user?.isAgencyUser && user?.agencyModules?.some((m) => m === '*' || m.startsWith('admin:')))) && (
           <>
             <div className="pt-5 pb-1.5 px-3">
               <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
