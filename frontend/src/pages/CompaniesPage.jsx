@@ -460,8 +460,8 @@ function SecurityTab({ company }) {
       >
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-            style={{ background: totpRequired ? 'rgba(99,102,241,0.12)' : 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-            <ShieldCheck size={16} className={totpRequired ? 'text-indigo-500' : ''} style={{ color: totpRequired ? undefined : 'var(--text-muted)' }} />
+            style={{ background: otpRequired ? 'rgba(99,102,241,0.12)' : 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+            <ShieldCheck size={16} className={otpRequired ? 'text-indigo-500' : ''} style={{ color: otpRequired ? undefined : 'var(--text-muted)' }} />
           </div>
           <div>
             <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
