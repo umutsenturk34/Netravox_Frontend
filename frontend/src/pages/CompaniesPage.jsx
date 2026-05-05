@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Input, Select } from '../components/ui/Input';
 import { TableSkeleton } from '../components/ui/Skeleton';
-import { Building2, ChevronRight, Users, Package, Plus, Copy, Check } from 'lucide-react';
+import { Building2, ChevronRight, Users, Package, Plus, Copy, Check, ShieldCheck } from 'lucide-react';
 
 const ALL_MODULES = [
   { id: 'pages',           label: 'Sayfalar' },
@@ -405,6 +405,7 @@ export default function CompaniesPage() {
               {[
                 { id: 'modules', label: 'Modüller', icon: Package },
                 { id: 'users', label: 'Kullanıcılar', icon: Users },
+                { id: 'security', label: 'Güvenlik', icon: ShieldCheck },
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -426,8 +427,69 @@ export default function CompaniesPage() {
             {manageTab === 'users' && (
               <UsersTab company={managingCompany} />
             )}
+            {manageTab === 'security' && (
+              <SecurityTab company={managingCompany} />
+            )}
           </div>
         </Modal>
+      )}
+    </div>
+  );
+}
+
+function SecurityTab({ company }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [totpRequired, setTotpRequired] = useState(company.security?.totpRequired ?? false);
+
+  const mutation = useMutation({
+    mutationFn: (val) => api.patch(`/companies/${company._id}/security`, { totpRequired: val }).then((r) => r.data),
+    onSuccess: (data) => {
+      setTotpRequired(data.security.totpRequired);
+      qc.invalidateQueries({ queryKey: ['companies'] });
+      toast.success('Güvenlik ayarları kaydedildi');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div
+        className="flex items-center justify-between rounded-xl p-4"
+        style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)' }}
+      >
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+            style={{ background: totpRequired ? 'rgba(99,102,241,0.12)' : 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+            <ShieldCheck size={16} className={totpRequired ? 'text-indigo-500' : ''} style={{ color: totpRequired ? undefined : 'var(--text-muted)' }} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+              İki Faktörlü Doğrulama (2FA)
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              Açık olduğunda bu firmanın tüm kullanıcıları Google Authenticator ile giriş yapmak zorunda kalır.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => mutation.mutate(!totpRequired)}
+          disabled={mutation.isPending}
+          className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4"
+          style={{ background: totpRequired ? '#6366f1' : 'var(--border)' }}
+        >
+          <span
+            className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            style={{ transform: totpRequired ? 'translateX(20px)' : 'translateX(0)' }}
+          />
+        </button>
+      </div>
+
+      {totpRequired && (
+        <div className="rounded-xl px-4 py-3 text-xs"
+          style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--text-muted)' }}>
+          2FA aktif — Bu firmaya yeni giriş yapan kullanıcılar Google Authenticator kurulumunu tamamlamak zorunda kalacak.
+        </div>
       )}
     </div>
   );

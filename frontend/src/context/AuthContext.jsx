@@ -44,6 +44,10 @@ export const AuthProvider = ({ children }) => {
     const payload = { email, password };
     if (tenantSlug) payload.tenantSlug = tenantSlug;
     const { data } = await api.post('/auth/login', payload);
+
+    // TOTP gerekiyorsa token set etme, LoginPage handle eder
+    if (data.totpRequired || data.totpSetupRequired) return data;
+
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     setUser(data.user);
@@ -51,6 +55,19 @@ export const AuthProvider = ({ children }) => {
     if (data.user.mustChangePassword) return data.user;
 
     // İlk tenant'ı otomatik seç
+    const firstTenant = data.user.companyRoles?.[0]?.tenantId;
+    if (firstTenant) {
+      localStorage.setItem('activeTenantId', firstTenant);
+      setActiveTenantId(firstTenant);
+      await fetchCompany(firstTenant);
+    }
+    return data.user;
+  };
+
+  const finalizeLogin = async (data) => {
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    setUser(data.user);
     const firstTenant = data.user.companyRoles?.[0]?.tenantId;
     if (firstTenant) {
       localStorage.setItem('activeTenantId', firstTenant);
@@ -82,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, activeTenantId, activeCompany, companyLoading, loading, login, logout, switchTenant, clearMustChangePassword }}>
+    <AuthContext.Provider value={{ user, activeTenantId, activeCompany, companyLoading, loading, login, finalizeLogin, logout, switchTenant, clearMustChangePassword }}>
       {children}
     </AuthContext.Provider>
   );
