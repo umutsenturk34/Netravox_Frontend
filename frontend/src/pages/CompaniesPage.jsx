@@ -157,6 +157,12 @@ function UsersTab({ company }) {
     onError: () => toast.error('Güncellenemedi'),
   });
 
+  const resetPassword = useMutation({
+    mutationFn: (userId) => api.post(`/companies/${company._id}/users/${userId}/reset-password`).then((r) => r.data),
+    onSuccess: (data) => setGeneratedPwd({ email: data.email, password: data.temporaryPassword }),
+    onError: () => toast.error('Şifre sıfırlanamadı'),
+  });
+
   const assignableRoles = roles.filter((r) => !['super_admin', 'agency_admin'].includes(r.name));
 
   return (
@@ -188,7 +194,7 @@ function UsersTab({ company }) {
           <table className="w-full text-sm">
             <thead style={{ background: 'var(--bg-muted)' }}>
               <tr>
-                {['Ad', 'E-posta', 'Rol', 'Durum', ''].map((h, i) => (
+                {['Ad', 'E-posta', 'Rol', 'Durum', 'İşlemler'].map((h, i) => (
                   <th key={i} className="text-left px-3 py-2.5 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{h}</th>
                 ))}
               </tr>
@@ -208,12 +214,21 @@ function UsersTab({ company }) {
                       </span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <button
-                        onClick={() => toggleActive.mutate({ id: u._id, isActive: !u.isActive })}
-                        className={`text-xs px-2 py-1 rounded ${u.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
-                      >
-                        {u.isActive ? 'Devre dışı' : 'Aktifleştir'}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleActive.mutate({ id: u._id, isActive: !u.isActive })}
+                          className={`text-xs px-2 py-1 rounded ${u.isActive ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20' : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
+                        >
+                          {u.isActive ? 'Pasife al' : 'Aktifleştir'}
+                        </button>
+                        <button
+                          onClick={() => resetPassword.mutate(u._id)}
+                          disabled={resetPassword.isPending}
+                          className="text-xs px-2 py-1 rounded text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                        >
+                          Şifre sıfırla
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -285,6 +300,12 @@ export default function CompaniesPage() {
     onError: (err) => toast.error(err.response?.data?.message || 'Oluşturulamadı'),
   });
 
+  const toggleCompanyActive = useMutation({
+    mutationFn: ({ id, isActive }) => api.patch(`/companies/${id}`, { isActive }).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['companies'] }),
+    onError: () => toast.error('Güncellenemedi'),
+  });
+
   const openManage = (company) => {
     setManagingCompany(company);
     setManageTab('modules');
@@ -337,13 +358,25 @@ export default function CompaniesPage() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => openManage(c)}
-                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg hover:bg-[var(--bg-muted)] transition-colors"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  Yönet <ChevronRight size={14} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleCompanyActive.mutate({ id: c._id, isActive: !c.isActive })}
+                    className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                      c.isActive
+                        ? 'border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
+                        : 'border-green-200 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30'
+                    }`}
+                  >
+                    {c.isActive ? 'Pasife Al' : 'Aktifleştir'}
+                  </button>
+                  <button
+                    onClick={() => openManage(c)}
+                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg hover:bg-[var(--bg-muted)] transition-colors"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    Yönet <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             );
           })}
