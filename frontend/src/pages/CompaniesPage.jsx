@@ -30,6 +30,7 @@ const ALL_MODULES = [
   { id: 'redirects',       label: 'Redirect' },
   { id: 'languages',       label: 'Diller' },
   { id: 'settings',        label: 'Firma Ayarları' },
+  { id: 'analytics',       label: 'Analitik (Dashboard)' },
 ];
 
 const SECTORS = [
