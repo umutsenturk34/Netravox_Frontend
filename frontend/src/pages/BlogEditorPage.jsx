@@ -31,6 +31,7 @@ const empty = {
   coverImage:  '',
   tags:        '',
   author:      '',
+  categoryId:  '',
   status:      'draft',
   seo: {
     metaTitle: { tr: '', en: '' },
@@ -62,6 +63,11 @@ export default function BlogEditorPage() {
     enabled: !isNew,
   });
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ['blog-categories'],
+    queryFn: () => api.get('/blog-categories').then((r) => r.data),
+  });
+
   useEffect(() => {
     if (!postData) return;
     setForm({
@@ -69,10 +75,11 @@ export default function BlogEditorPage() {
       slug:       postData.slug || '',
       excerpt:    { tr: postData.excerpt?.tr || '', en: postData.excerpt?.en || '' },
       content:    { tr: postData.content?.tr || '', en: postData.content?.en || '' },
-      coverImage: postData.coverImage || '',
-      tags:       (postData.tags || []).join(', '),
-      author:     postData.author || '',
-      status:     postData.status || 'draft',
+      coverImage:  postData.coverImage || '',
+      tags:        (postData.tags || []).join(', '),
+      author:      postData.author || '',
+      categoryId:  postData.categoryId?._id || postData.categoryId || '',
+      status:      postData.status || 'draft',
       seo: {
         metaTitle:    { tr: postData.seo?.metaTitle?.tr || '', en: postData.seo?.metaTitle?.en || '' },
         metaDesc:     { tr: postData.seo?.metaDesc?.tr || '', en: postData.seo?.metaDesc?.en || '' },
@@ -121,7 +128,8 @@ export default function BlogEditorPage() {
 
     save.mutate({
       ...form,
-      tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+      tags:       form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+      categoryId: form.categoryId || null,
     });
   }
 
@@ -277,6 +285,18 @@ export default function BlogEditorPage() {
               placeholder="seo, web, pazarlama"
             />
           </div>
+          <Select
+            label="Kategori"
+            value={form.categoryId}
+            onChange={(e) => setField('categoryId', e.target.value)}
+          >
+            <option value="">Kategori seçin (opsiyonel)</option>
+            {categories.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name?.tr || c.name?.en || c.slug}
+              </option>
+            ))}
+          </Select>
         </div>
 
         {/* SEO */}
