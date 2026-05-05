@@ -44,7 +44,7 @@ const TABS = [
   { id: 'gorsel', label: 'Görseller' },
   { id: 'degerler', label: 'Değerler' },
   { id: 'email', label: 'E-posta Şablonları' },
-  { id: 'smtp', label: 'SMTP Ayarları' },
+  { id: 'smtp', label: 'SMTP Ayarları', agencyOnly: true },
   { id: 'sosyal', label: 'Sosyal & Diğer' },
   { id: 'entegrasyon', label: 'Entegrasyonlar' },
   { id: 'moduller', label: 'Modüller', agencyOnly: true },
