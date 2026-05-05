@@ -109,13 +109,18 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function DashboardPage() {
-  const { user, activeTenantId } = useAuth();
+  const { user, activeTenantId, activeCompany } = useAuth();
+
+  const hasModule = (mod) => {
+    const m = activeCompany?.modules || [];
+    return m.includes('*') || m.includes(mod);
+  };
 
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['analytics', 'summary', activeTenantId],
     queryFn: () => api.get('/analytics/summary').then((r) => r.data),
-    enabled: !!activeTenantId,
-    staleTime: 5 * 60 * 1000, // 5 dk cache
+    enabled: !!activeTenantId && (user?.isSuperAdmin || user?.isAgencyUser || hasModule('analytics')),
+    staleTime: 5 * 60 * 1000,
     retry: false,
   });
 
