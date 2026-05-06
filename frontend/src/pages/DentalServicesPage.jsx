@@ -10,25 +10,34 @@ import EmptyState from '../components/ui/EmptyState';
 
 const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '👕', '🧥', '🧢', '👜', '⭐', '🎁', '📦', '🛍️'];
+const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '👕', '🧥', '🧢', '👜', '⭐', '🎁', '📦', '🛍️', '🚗', '🚙', '🏎️', '🚌', '⚡'];
 
 const SECTOR_LABELS = {
-  dental:  { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false },
-  beauty:  { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',     sizes: false },
-  hotel:   { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness', sizes: false },
-  service: { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',     sizes: false },
-  other:   { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',       sizes: true  },
-  default: { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',sizes: true  },
+  dental:  { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false, material: false, vehicle: false },
+  beauty:  { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',     sizes: false, material: false, vehicle: false },
+  hotel:   { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness', sizes: false, material: false, vehicle: false },
+  service: { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',     sizes: false, material: false, vehicle: false },
+  rent:    { page: 'Araç Filosu',           item: 'Araç',   placeholder: 'Toyota Corolla', sizes: false, material: false, vehicle: true  },
+  other:   { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',       sizes: true,  material: true,  vehicle: false },
+  default: { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',sizes: true,  material: true,  vehicle: false },
 };
+
+const FUEL_TYPES = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];
+const TRANSMISSIONS = ['Otomatik', 'Manuel', 'Yarı Otomatik'];
+const LUGGAGE_OPTS  = ['Küçük (1 valiz)', 'Orta (2 valiz)', 'Büyük (3 valiz)', 'XL (4+ valiz)'];
+const VEHICLE_CLASS = ['Ekonomik', 'Orta Segment', 'Üst Segment', 'SUV', 'Lüks', 'Pickup', 'Minivan', 'Elektrikli', 'Spor'];
+const MILEAGE_OPTS  = ['300 km/gün', '500 km/gün', 'Sınırsız'];
 
 const emptyService = {
   name: { tr: '', en: '' },
   description: { tr: '', en: '' },
   fullDescription: { tr: '', en: '' },
+  shortDescription: { tr: '', en: '' },
   material: { tr: '', en: '' },
   sizes: [],
   sizeGuide: { tr: '', en: '' },
   sizeGuideImage: '',
+  badge: '',
   category: '',
   sku: '',
   icon: '',
@@ -38,6 +47,10 @@ const emptyService = {
   duration: '',
   isActive: true,
   order: 0,
+  specs: {
+    brand: '', model: '', year: '', color: '',
+    fuel: '', transmission: '', seats: '', luggage: '', class: '', mileage: '',
+  },
 };
 
 // 3-state cycle: none → instock → outofstock → none
@@ -102,13 +115,20 @@ export default function DentalServicesPage() {
     enabled: !!activeTenantId,
   });
 
+  const updateCache = (updater) =>
+    qc.setQueryData(['services', activeTenantId], (old) => updater(old || []));
+
   const save = useMutation({
     mutationFn: (data) =>
       editing
         ? api.patch(`/services/${editing._id}`, data).then((r) => r.data)
         : api.post('/services', data).then((r) => r.data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['services'] });
+    onSuccess: (saved) => {
+      updateCache((old) => {
+        const idx = old.findIndex((s) => s._id === saved._id);
+        if (idx >= 0) { const n = [...old]; n[idx] = saved; return n; }
+        return [...old, saved];
+      });
       toast.success(editing ? `${labels.item} güncellendi` : `${labels.item} oluşturuldu`);
       closeModal();
     },
@@ -117,15 +137,17 @@ export default function DentalServicesPage() {
 
   const del = useMutation({
     mutationFn: (id) => api.delete(`/services/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['services'] });
+    onSuccess: (_, id) => {
+      updateCache((old) => old.filter((s) => s._id !== id));
       toast.success(`${labels.item} silindi`);
     },
   });
 
   const toggle = useMutation({
-    mutationFn: ({ id, isActive }) => api.patch(`/services/${id}`, { isActive }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['services'] }),
+    mutationFn: ({ id, isActive }) => api.patch(`/services/${id}`, { isActive }).then((r) => r.data),
+    onSuccess: (saved) => {
+      updateCache((old) => old.map((s) => (s._id === saved._id ? saved : s)));
+    },
   });
 
   function openNew() {
@@ -141,10 +163,12 @@ export default function DentalServicesPage() {
       name: { tr: svc.name?.tr || '', en: svc.name?.en || '' },
       description: { tr: svc.description?.tr || '', en: svc.description?.en || '' },
       fullDescription: { tr: svc.fullDescription?.tr || '', en: svc.fullDescription?.en || '' },
+      shortDescription: { tr: svc.shortDescription?.tr || '', en: svc.shortDescription?.en || '' },
       material: { tr: svc.material?.tr || '', en: svc.material?.en || '' },
       sizes: svc.sizes || [],
       sizeGuide: { tr: svc.sizeGuide?.tr || '', en: svc.sizeGuide?.en || '' },
       sizeGuideImage: svc.sizeGuideImage || '',
+      badge: svc.badge || '',
       category: svc.category || '',
       sku: svc.sku || '',
       icon: svc.icon || '',
@@ -154,6 +178,18 @@ export default function DentalServicesPage() {
       duration: svc.duration || '',
       isActive: svc.isActive ?? true,
       order: svc.order || 0,
+      specs: {
+        brand:        svc.specs?.brand        || '',
+        model:        svc.specs?.model        || '',
+        year:         svc.specs?.year         || '',
+        color:        svc.specs?.color        || '',
+        fuel:         svc.specs?.fuel         || '',
+        transmission: svc.specs?.transmission || '',
+        seats:        svc.specs?.seats        || '',
+        luggage:      svc.specs?.luggage      || '',
+        class:        svc.specs?.class        || '',
+        mileage:      svc.specs?.mileage      || '',
+      },
     });
     setTab('tr');
     setModal(true);
@@ -293,14 +329,20 @@ export default function DentalServicesPage() {
                 <div className="relative h-44 flex-shrink-0 overflow-hidden" style={{ background: 'var(--bg-muted)' }}>
                   {svc.image ? (
                     <img
+                      key={svc.image}
                       src={svc.image}
                       alt={svc.name?.tr || ''}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const ph = e.currentTarget.parentNode?.querySelector('[data-placeholder]');
+                        if (ph) ph.style.display = 'flex';
+                      }}
                     />
                   ) : null}
                   {/* Placeholder — gösterilir eğer görsel yoksa veya yüklenemezse */}
                   <div
+                    data-placeholder=""
                     className="w-full h-full items-center justify-center flex-col gap-1"
                     style={{ display: svc.image ? 'none' : 'flex' }}
                   >
@@ -438,15 +480,129 @@ export default function DentalServicesPage() {
               value={form.fullDescription[tab]}
               onChange={(e) => setNested('fullDescription', tab, e.target.value)}
               rows={3}
-              placeholder={tab === 'tr' ? 'Ürün detay sayfasında görünecek açıklama...' : 'Full description on product detail page...'}
+              placeholder={tab === 'tr' ? 'Detay sayfasında görünecek açıklama...' : 'Full description on detail page...'}
             />
-            <Input
-              label="Kumaş / Malzeme Bilgisi"
-              value={form.material[tab]}
-              onChange={(e) => setNested('material', tab, e.target.value)}
-              placeholder={tab === 'tr' ? '%100 Organik Pamuk, 220 GSM...' : '100% Organic Cotton, 220 GSM...'}
-            />
+            {labels.material && (
+              <Input
+                label="Kumaş / Malzeme Bilgisi"
+                value={form.material[tab]}
+                onChange={(e) => setNested('material', tab, e.target.value)}
+                placeholder={tab === 'tr' ? '%100 Organik Pamuk, 220 GSM...' : '100% Organic Cotton, 220 GSM...'}
+              />
+            )}
+            {labels.vehicle && (
+              <Input
+                label="Rozet / Etiket (isteğe bağlı)"
+                value={form.badge}
+                onChange={(e) => set('badge', e.target.value)}
+                placeholder="YENİ, En Popüler, Fırsatı Kaçırma..."
+              />
+            )}
           </FormSection>
+
+          {/* ── Araç Özellikleri (sadece rent sektörü) ── */}
+          {labels.vehicle && (
+            <FormSection title="Araç Özellikleri">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Marka"
+                  value={form.specs.brand}
+                  onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, brand: e.target.value } }))}
+                  placeholder="Toyota, BMW, Tesla..."
+                />
+                <Input
+                  label="Model"
+                  value={form.specs.model}
+                  onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, model: e.target.value } }))}
+                  placeholder="Corolla, 5 Serisi, Model 3..."
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Input
+                  label="Model Yılı"
+                  value={form.specs.year}
+                  onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, year: e.target.value } }))}
+                  placeholder="2024"
+                />
+                <Input
+                  label="Renk"
+                  value={form.specs.color}
+                  onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, color: e.target.value } }))}
+                  placeholder="Beyaz, Siyah, Gri..."
+                />
+                <Input
+                  label="Koltuk Sayısı"
+                  value={form.specs.seats}
+                  onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, seats: e.target.value } }))}
+                  placeholder="5"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Yakıt Türü</label>
+                  <select
+                    value={form.specs.fuel}
+                    onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, fuel: e.target.value } }))}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {FUEL_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Vites</label>
+                  <select
+                    value={form.specs.transmission}
+                    onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, transmission: e.target.value } }))}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Araç Sınıfı</label>
+                  <select
+                    value={form.specs.class}
+                    onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, class: e.target.value } }))}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {VEHICLE_CLASS.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Bagaj</label>
+                  <select
+                    value={form.specs.luggage}
+                    onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, luggage: e.target.value } }))}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {LUGGAGE_OPTS.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>KM Limiti</label>
+                  <select
+                    value={form.specs.mileage}
+                    onChange={(e) => setForm(p => ({ ...p, specs: { ...p.specs, mileage: e.target.value } }))}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {MILEAGE_OPTS.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+              </div>
+            </FormSection>
+          )}
 
           {/* ── Bedenler (sadece ürün sektörlerinde) ── */}
           {labels.sizes && (
@@ -591,14 +747,14 @@ export default function DentalServicesPage() {
           </FormSection>
 
           {/* ── Fiyat & Görünüm ── */}
-          <FormSection title="Fiyat ve Görünüm">
+          <FormSection title={labels.vehicle ? 'Günlük Fiyat ve Görünüm' : 'Fiyat ve Görünüm'}>
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Fiyat"
+                label={labels.vehicle ? 'Günlük Fiyat (₺/gün)' : 'Fiyat'}
                 type="number"
                 value={form.price}
                 onChange={(e) => set('price', e.target.value)}
-                placeholder="1500"
+                placeholder={labels.vehicle ? '750' : '1500'}
               />
               <Select
                 label="Para Birimi"
@@ -636,7 +792,7 @@ export default function DentalServicesPage() {
             />
 
             <div className="grid grid-cols-2 gap-4">
-              {!labels.sizes && (
+              {!labels.sizes && !labels.vehicle && (
                 <Input
                   label="Süre"
                   value={form.duration}

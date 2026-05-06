@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Input, Select } from '../components/ui/Input';
 import { TableSkeleton } from '../components/ui/Skeleton';
-import { Building2, ChevronRight, Users, Package, Plus, Copy, Check, ShieldCheck } from 'lucide-react';
+import { Building2, ChevronRight, Users, Package, Plus, Copy, Check, ShieldCheck, CreditCard } from 'lucide-react';
 
 const ALL_MODULES = [
   { id: 'pages',           label: 'Sayfalar' },
@@ -31,6 +31,7 @@ const ALL_MODULES = [
   { id: 'languages',       label: 'Diller' },
   { id: 'settings',        label: 'Firma Ayarları' },
   { id: 'analytics',       label: 'Analitik (Dashboard)' },
+  { id: 'orders',          label: 'Siparişler & Ödemeler' },
 ];
 
 const SECTORS = [
@@ -458,9 +459,10 @@ export default function CompaniesPage() {
           <div>
             <div className="flex gap-1 p-1 rounded-lg mb-5 w-fit" style={{ background: 'var(--bg-muted)' }}>
               {[
-                { id: 'modules', label: 'Modüller', icon: Package, always: true },
-                { id: 'users', label: 'Kullanıcılar', icon: Users, adminMod: 'admin:users' },
-                { id: 'security', label: 'Güvenlik', icon: ShieldCheck, adminMod: 'admin:security' },
+                { id: 'modules',  label: 'Modüller',    icon: Package,    always: true },
+                { id: 'users',    label: 'Kullanıcılar',icon: Users,      adminMod: 'admin:users' },
+                { id: 'security', label: 'Güvenlik',    icon: ShieldCheck,adminMod: 'admin:security' },
+                { id: 'payment',  label: 'Ödeme',       icon: CreditCard, adminMod: 'admin:companies' },
               ].filter((t) => t.always || hasAdminModule(t.adminMod)).map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -484,6 +486,9 @@ export default function CompaniesPage() {
             )}
             {manageTab === 'security' && (
               <SecurityTab company={managingCompany} />
+            )}
+            {manageTab === 'payment' && (
+              <PaymentTab company={managingCompany} />
             )}
           </div>
         </Modal>
@@ -546,6 +551,120 @@ function SecurityTab({ company }) {
           2FA aktif — Bu firmanın kullanıcıları her girişte e-postalarına gelen 6 haneli kodu girmek zorunda kalacak.
         </div>
       )}
+    </div>
+  );
+}
+
+function PaymentTab({ company }) {
+  const { toast } = useToast();
+  const [form, setForm] = useState({
+    enabled:       company.paymentSettings?.iyzico?.enabled   ?? false,
+    apiKey:        '',
+    secretKey:     '',
+    sandbox:       company.paymentSettings?.iyzico?.sandbox   ?? true,
+    taxRate:       company.paymentSettings?.taxRate           ?? 20,
+    currency:      company.paymentSettings?.currency          || 'TRY',
+    invoicePrefix: company.paymentSettings?.invoicePrefix     || 'INV',
+  });
+  const [testing, setTesting] = useState(false);
+
+  // Mevcut ayarları yükle
+  const { data: current } = useQuery({
+    queryKey: ['company-payment', company._id],
+    queryFn: () => api.get(`/companies/${company._id}/payment`).then((r) => r.data),
+    onSuccess: (d) => setForm((p) => ({
+      ...p,
+      enabled:       d.iyzico?.enabled   ?? false,
+      apiKey:        d.iyzico?.apiKey    || '',
+      secretKey:     d.iyzico?.secretKey || '',
+      sandbox:       d.iyzico?.sandbox   ?? true,
+      taxRate:       d.taxRate           ?? 20,
+      currency:      d.currency          || 'TRY',
+      invoicePrefix: d.invoicePrefix     || 'INV',
+    })),
+  });
+
+  const save = useMutation({
+    mutationFn: () => api.patch(`/companies/${company._id}/payment`, {
+      iyzico: { enabled: form.enabled, apiKey: form.apiKey, secretKey: form.secretKey, sandbox: form.sandbox },
+      taxRate: form.taxRate,
+      currency: form.currency,
+      invoicePrefix: form.invoicePrefix,
+    }),
+    onSuccess: () => toast.success('Ödeme ayarları kaydedildi'),
+    onError: (e) => toast.error(e.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  const testConnection = async () => {
+    setTesting(true);
+    try {
+      await api.post(`/companies/${company._id}/payment/test`);
+      toast.success('İyzico bağlantısı başarılı');
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Bağlantı başarısız');
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  return (
+    <div className="space-y-5">
+      {/* İyzico toggle */}
+      <div className="flex items-center justify-between p-4 rounded-xl border"
+        style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>İyzico Ödeme Sistemi</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktif edilince müşteri sitesinde ödeme alınabilir.</p>
+        </div>
+        <button onClick={() => set('enabled', !form.enabled)}
+          className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4"
+          style={{ background: form.enabled ? '#6366f1' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            style={{ transform: form.enabled ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      {/* API Credentials */}
+      <div className="space-y-3">
+        <Input label="İyzico API Key" value={form.apiKey} onChange={(e) => set('apiKey', e.target.value)} placeholder="sandbox-xxx" />
+        <Input label="İyzico Secret Key" type="password" value={form.secretKey} onChange={(e) => set('secretKey', e.target.value)} placeholder="••••••••" />
+      </div>
+
+      {/* Sandbox toggle */}
+      <div className="flex items-center justify-between p-3 rounded-xl border"
+        style={{ borderColor: 'var(--border)' }}>
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Test Modu (Sandbox)</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Kapalıysa gerçek ödemeler alınır</p>
+        </div>
+        <button onClick={() => set('sandbox', !form.sandbox)}
+          className="relative shrink-0 w-11 h-6 rounded-full transition-colors"
+          style={{ background: form.sandbox ? '#f59e0b' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            style={{ transform: form.sandbox ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      {/* Fatura ayarları */}
+      <div className="grid grid-cols-3 gap-3">
+        <Input label="KDV Oranı (%)" type="number" value={form.taxRate}
+          onChange={(e) => set('taxRate', Number(e.target.value))} />
+        <Input label="Para Birimi" value={form.currency}
+          onChange={(e) => set('currency', e.target.value)} placeholder="TRY" />
+        <Input label="Fatura Prefix" value={form.invoicePrefix}
+          onChange={(e) => set('invoicePrefix', e.target.value)} placeholder="INV" />
+      </div>
+
+      <div className="flex gap-3">
+        <Button variant="secondary" onClick={testConnection} disabled={testing || !form.apiKey}>
+          {testing ? 'Test ediliyor...' : 'Bağlantıyı Test Et'}
+        </Button>
+        <Button onClick={() => save.mutate()} disabled={save.isPending}>
+          {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+        </Button>
+      </div>
     </div>
   );
 }

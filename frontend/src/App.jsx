@@ -31,6 +31,11 @@ import TestimonialsPage from './pages/TestimonialsPage';
 import TeamPage from './pages/TeamPage';
 import PopupsPage from './pages/PopupsPage';
 import AuditLogPage from './pages/AuditLogPage';
+import OrdersPage from './pages/OrdersPage';
+import OrderDetailPage from './pages/OrderDetailPage';
+import CheckoutPage from './pages/CheckoutPage';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
+import CheckoutFailPage from './pages/CheckoutFailPage';
 
 import PanelLayout from './components/layout/PanelLayout';
 import ForcePasswordChangePage from './pages/ForcePasswordChangePage';
@@ -94,9 +99,14 @@ export default function App() {
           <Route path="team" element={<TeamPage />} />
           <Route path="popups" element={<PopupsPage />} />
           <Route path="audit" element={<AuditLogPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
+        <Route path="/checkout/:slug" element={<CheckoutPage />} />
+        <Route path="/checkout/:slug/success" element={<CheckoutSuccessPage />} />
+        <Route path="/checkout/:slug/fail" element={<CheckoutFailPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

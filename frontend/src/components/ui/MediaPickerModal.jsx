@@ -70,6 +70,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
   const footer = (
     <div className="flex items-center gap-2">
       <button
+        type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
         className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border transition-colors"
@@ -87,6 +88,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
       )}
 
       <button
+        type="button"
         onClick={handleClose}
         className="text-sm px-3 py-2 rounded-lg border ml-auto transition-colors"
         style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
@@ -94,6 +96,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
         İptal
       </button>
       <button
+        type="button"
         onClick={() => confirm()}
         disabled={!selected}
         className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-40"
@@ -159,6 +162,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
             const isSelected = selected === item.url;
             return (
               <button
+                type="button"
                 key={item._id}
                 onClick={() => setSelected(isSelected ? null : item.url)}
                 onDoubleClick={() => confirm(item.url)}

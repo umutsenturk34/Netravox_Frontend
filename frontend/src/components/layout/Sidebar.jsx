@@ -6,7 +6,7 @@ import {
   HeartPulse, Building2, Calendar, Mail, Bell, Search,
   ArrowRightLeft, Globe, Users, ShieldCheck, Settings, Building,
   BookOpen, HelpCircle, Package, Tag, Star, UserCircle,
-  Megaphone, ClipboardList,
+  Megaphone, ClipboardList, ShoppingBag,
 } from 'lucide-react';
 
 // module: modül adı — Company.modules listesinde yoksa gizlenir (boş liste = hepsi açık)
@@ -36,6 +36,7 @@ const navItems = [
   { label: 'Roller',                 to: '/roles',                  icon: ShieldCheck,         module: 'roles',        superAdminOnly: true },
   { label: 'Firma Ayarları',         to: '/settings',               icon: Settings,            module: 'settings' },
   { label: 'Audit Log',              to: '/audit',                  icon: ClipboardList,       module: 'audit',        agencyOnly: true },
+  { label: 'Siparişler',             to: '/orders',                 icon: ShoppingBag,         module: 'orders' },
 ];
 
 const adminItems = [
