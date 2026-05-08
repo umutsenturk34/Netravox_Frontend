@@ -6,7 +6,7 @@ import {
   HeartPulse, Building2, Calendar, Mail, Bell, Search,
   ArrowRightLeft, Globe, Users, ShieldCheck, Settings, Building,
   BookOpen, HelpCircle, Package, Tag, Star, UserCircle,
-  Megaphone, ClipboardList, ShoppingBag,
+  Megaphone, ClipboardList, ShoppingBag, Settings2,
 } from 'lucide-react';
 
 // module: modül adı — Company.modules listesinde yoksa gizlenir (boş liste = hepsi açık)
@@ -36,11 +36,12 @@ const navItems = [
   { label: 'Roller',                 to: '/roles',                  icon: ShieldCheck,         module: 'roles',        superAdminOnly: true },
   { label: 'Firma Ayarları',         to: '/settings',               icon: Settings,            module: 'settings' },
   { label: 'Audit Log',              to: '/audit',                  icon: ClipboardList,       module: 'audit',        agencyOnly: true },
-  { label: 'Siparişler',             to: '/orders',                 icon: ShoppingBag,         module: 'orders' },
+  { label: 'Siparişler',             to: '/orders',                 icon: ShoppingBag,         module: 'orders', explicit: true },
 ];
 
 const adminItems = [
-  { label: 'Firmalar', to: '/companies', icon: Building },
+  { label: 'Firmalar',         to: '/companies',       icon: Building },
+  { label: 'E-posta Ayarları', to: '/system-settings', icon: Settings2 },
 ];
 
 export default function Sidebar() {
@@ -54,13 +55,25 @@ export default function Sidebar() {
     if (item.superAdminOnly && !user?.isSuperAdmin) return false;
     // Sadece ajans/super admin görebilir
     if (item.agencyOnly && !isPrivileged) return false;
-    // Sektör kısıtı
+
+    // Sektör kısıtı — activeCompany seçiliyse HER kullanıcı için sektöre göre filtrele
     if (item.sectors) {
-      if (!isPrivileged) {
-        if (companyLoading || !activeCompany) return false;
+      if (activeCompany?.sector) {
+        // Şirket seçili ve sektörü belli: superAdmin dahil sektör filtresi uygula
         if (!item.sectors.includes(activeCompany.sector)) return false;
+      } else if (!isPrivileged) {
+        // Şirket yok veya sektörü belirsiz + yetkisiz kullanıcı: gizle
+        return false;
       }
+      // Şirket yok + superAdmin/agencyUser: tüm sektör öğelerini göster
     }
+
+    // explicit: true — '*' wildcard geçersiz, modül listesinde açıkça olmalı (herkes için)
+    if (item.explicit) {
+      const modules = activeCompany?.modules;
+      if (!modules?.includes(item.module)) return false;
+    }
+
     // Modül kısıtı — modules boş = hepsi kapalı, ['*'] = hepsi açık, liste = sadece listedekiler
     if (!isPrivileged && item.module && item.module !== 'dashboard') {
       const modules = activeCompany?.modules;

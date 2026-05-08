@@ -99,7 +99,7 @@ export function ImageUrlInput({ label, value, onChange, placeholder, hint, class
   );
 }
 
-export function Input({ label, error, className = '', ...props }) {
+export function Input({ label, hint, error, className = '', ...props }) {
   return (
     <div className={className}>
       {label && (
@@ -107,6 +107,7 @@ export function Input({ label, error, className = '', ...props }) {
           {label}
         </label>
       )}
+      {hint && <p className="text-xs mb-1.5" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>{hint}</p>}
       <input
         {...props}
         className={`w-full rounded-lg px-3.5 py-2.5 border outline-none transition-all

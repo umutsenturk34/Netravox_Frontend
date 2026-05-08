@@ -33,6 +33,7 @@ import PopupsPage from './pages/PopupsPage';
 import AuditLogPage from './pages/AuditLogPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import SystemSettingsPage from './pages/SystemSettingsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import CheckoutFailPage from './pages/CheckoutFailPage';
@@ -101,6 +102,7 @@ export default function App() {
           <Route path="audit" element={<AuditLogPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="system-settings" element={<SuperAdminRoute><SystemSettingsPage /></SuperAdminRoute>} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

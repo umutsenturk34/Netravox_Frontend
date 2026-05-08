@@ -555,8 +555,27 @@ function SecurityTab({ company }) {
   );
 }
 
+const MASKED    = '••••••••';
+const KEY_RE    = /^[a-zA-Z0-9\-]{20,}$/;
+const PREFIX_RE = /^[A-Z]{2,6}$/;
+
+function paymentErrors(form) {
+  const e = {};
+  if (form.apiKey && form.apiKey !== MASKED && !KEY_RE.test(form.apiKey))
+    e.apiKey = 'En az 20 karakter, yalnızca harf · rakam · tire (-)';
+  if (form.secretKey && form.secretKey !== MASKED && !KEY_RE.test(form.secretKey))
+    e.secretKey = 'En az 20 karakter, yalnızca harf · rakam · tire (-)';
+  const tax = Number(form.taxRate);
+  if (isNaN(tax) || tax < 0 || tax > 100 || !Number.isInteger(tax))
+    e.taxRate = '0–100 arasında tam sayı (örn: 20)';
+  if (!PREFIX_RE.test(form.invoicePrefix))
+    e.invoicePrefix = '2–6 büyük İngilizce harf (örn: INV, FAT, ORD)';
+  return e;
+}
+
 function PaymentTab({ company }) {
   const { toast } = useToast();
+  const qc = useQueryClient();
   const [form, setForm] = useState({
     enabled:       company.paymentSettings?.iyzico?.enabled   ?? false,
     apiKey:        '',
@@ -568,8 +587,7 @@ function PaymentTab({ company }) {
   });
   const [testing, setTesting] = useState(false);
 
-  // Mevcut ayarları yükle
-  const { data: current } = useQuery({
+  useQuery({
     queryKey: ['company-payment', company._id],
     queryFn: () => api.get(`/companies/${company._id}/payment`).then((r) => r.data),
     onSuccess: (d) => setForm((p) => ({
@@ -584,14 +602,22 @@ function PaymentTab({ company }) {
     })),
   });
 
+  const errs     = paymentErrors(form);
+  const hasErrors = Object.values(errs).some(Boolean);
+  const canSave  = !hasErrors && (!form.enabled || (form.apiKey && form.secretKey));
+  const canTest  = !errs.apiKey && form.apiKey && form.apiKey !== MASKED;
+
   const save = useMutation({
     mutationFn: () => api.patch(`/companies/${company._id}/payment`, {
       iyzico: { enabled: form.enabled, apiKey: form.apiKey, secretKey: form.secretKey, sandbox: form.sandbox },
-      taxRate: form.taxRate,
+      taxRate: Number(form.taxRate),
       currency: form.currency,
       invoicePrefix: form.invoicePrefix,
     }),
-    onSuccess: () => toast.success('Ödeme ayarları kaydedildi'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['company-payment', company._id] });
+      toast.success('Ödeme ayarları kaydedildi');
+    },
     onError: (e) => toast.error(e.response?.data?.message || 'Kaydedilemedi'),
   });
 
@@ -601,7 +627,7 @@ function PaymentTab({ company }) {
       await api.post(`/companies/${company._id}/payment/test`);
       toast.success('İyzico bağlantısı başarılı');
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Bağlantı başarısız');
+      toast.error(e.response?.data?.message || 'Bağlantı başarısız — API Key / Secret Key doğrulayın');
     } finally {
       setTesting(false);
     }
@@ -618,7 +644,7 @@ function PaymentTab({ company }) {
           <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>İyzico Ödeme Sistemi</p>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktif edilince müşteri sitesinde ödeme alınabilir.</p>
         </div>
-        <button onClick={() => set('enabled', !form.enabled)}
+        <button type="button" onClick={() => set('enabled', !form.enabled)}
           className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4"
           style={{ background: form.enabled ? '#6366f1' : 'var(--border)' }}>
           <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
@@ -628,8 +654,21 @@ function PaymentTab({ company }) {
 
       {/* API Credentials */}
       <div className="space-y-3">
-        <Input label="İyzico API Key" value={form.apiKey} onChange={(e) => set('apiKey', e.target.value)} placeholder="sandbox-xxx" />
-        <Input label="İyzico Secret Key" type="password" value={form.secretKey} onChange={(e) => set('secretKey', e.target.value)} placeholder="••••••••" />
+        <Input
+          label="İyzico API Key"
+          value={form.apiKey}
+          onChange={(e) => set('apiKey', e.target.value.trim())}
+          placeholder="sandbox-AbCdEfGhIjKlMnOpQrSt"
+          error={errs.apiKey}
+        />
+        <Input
+          label="İyzico Secret Key"
+          type="password"
+          value={form.secretKey}
+          onChange={(e) => set('secretKey', e.target.value.trim())}
+          placeholder="••••••••"
+          error={errs.secretKey}
+        />
       </div>
 
       {/* Sandbox toggle */}
@@ -637,11 +676,11 @@ function PaymentTab({ company }) {
         style={{ borderColor: 'var(--border)' }}>
         <div>
           <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Test Modu (Sandbox)</p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Kapalıysa gerçek ödemeler alınır</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Kapalıysa gerçek ödemeler alınır — canlıya geçince kapatın</p>
         </div>
-        <button onClick={() => set('sandbox', !form.sandbox)}
+        <button type="button" onClick={() => set('sandbox', !form.sandbox)}
           className="relative shrink-0 w-11 h-6 rounded-full transition-colors"
-          style={{ background: form.sandbox ? '#f59e0b' : 'var(--border)' }}>
+          style={{ background: form.sandbox ? '#f59e0b' : '#22c55e' }}>
           <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
             style={{ transform: form.sandbox ? 'translateX(20px)' : 'translateX(0)' }} />
         </button>
@@ -649,19 +688,37 @@ function PaymentTab({ company }) {
 
       {/* Fatura ayarları */}
       <div className="grid grid-cols-3 gap-3">
-        <Input label="KDV Oranı (%)" type="number" value={form.taxRate}
-          onChange={(e) => set('taxRate', Number(e.target.value))} />
-        <Input label="Para Birimi" value={form.currency}
-          onChange={(e) => set('currency', e.target.value)} placeholder="TRY" />
-        <Input label="Fatura Prefix" value={form.invoicePrefix}
-          onChange={(e) => set('invoicePrefix', e.target.value)} placeholder="INV" />
+        <Input
+          label="KDV Oranı (%)"
+          type="number"
+          min={0} max={100}
+          value={form.taxRate}
+          onChange={(e) => set('taxRate', e.target.value === '' ? '' : Number(e.target.value))}
+          error={errs.taxRate}
+        />
+        <Select
+          label="Para Birimi"
+          value={form.currency}
+          onChange={(e) => set('currency', e.target.value)}
+        >
+          <option value="TRY">TRY — Türk Lirası</option>
+          <option value="USD">USD — Dolar</option>
+          <option value="EUR">EUR — Euro</option>
+        </Select>
+        <Input
+          label="Fatura Prefix"
+          value={form.invoicePrefix}
+          onChange={(e) => set('invoicePrefix', e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6))}
+          placeholder="INV"
+          error={errs.invoicePrefix}
+        />
       </div>
 
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={testConnection} disabled={testing || !form.apiKey}>
+        <Button variant="secondary" onClick={testConnection} disabled={testing || !canTest}>
           {testing ? 'Test ediliyor...' : 'Bağlantıyı Test Et'}
         </Button>
-        <Button onClick={() => save.mutate()} disabled={save.isPending}>
+        <Button onClick={() => save.mutate()} disabled={save.isPending || !canSave}>
           {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
         </Button>
       </div>

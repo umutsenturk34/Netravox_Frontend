@@ -47,6 +47,7 @@ const TABS = [
   { id: 'smtp', label: 'SMTP Ayarları', agencyOnly: true },
   { id: 'sosyal', label: 'Sosyal & Diğer' },
   { id: 'entegrasyon', label: 'Entegrasyonlar' },
+  { id: 'odeme', label: 'Ödeme', moduleRequired: 'orders' },
   { id: 'moduller', label: 'Modüller', agencyOnly: true },
 ];
 
@@ -78,6 +79,8 @@ export default function CompanySettingsPage() {
   const [activeTab, setActiveTab] = useState('genel');
   const [smtpForm, setSmtpForm] = useState(DEFAULT_SMTP);
   const [testingMail, setTestingMail] = useState(false);
+  const [payForm, setPayForm] = useState({ enabled: false, apiKey: '', secretKey: '', sandbox: true, taxRate: 20, currency: 'TRY', invoicePrefix: 'INV' });
+  const [testingPay, setTestingPay] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -97,6 +100,7 @@ export default function CompanySettingsPage() {
     features: { aiContent: false, whatsapp: false },
     emailSettings: {
       senderName: '',
+      fromEmail: '',
       replyTo: '',
       accentColor: '#8B1A1A',
       phone: '',
@@ -163,6 +167,7 @@ export default function CompanySettingsPage() {
         },
         emailSettings: {
           senderName: company.emailSettings?.senderName || '',
+          fromEmail: company.emailSettings?.fromEmail || '',
           replyTo: company.emailSettings?.replyTo || '',
           accentColor: company.emailSettings?.accentColor || '#8B1A1A',
           phone: company.emailSettings?.phone || '',
@@ -216,6 +221,26 @@ export default function CompanySettingsPage() {
     enabled: !!activeTenantId && activeTab === 'smtp',
   });
 
+  const { data: payData } = useQuery({
+    queryKey: ['company-payment', activeTenantId],
+    queryFn: () => api.get(`/companies/${activeTenantId}/payment`).then((r) => r.data),
+    enabled: !!activeTenantId && activeTab === 'odeme',
+  });
+
+  useEffect(() => {
+    if (payData) {
+      setPayForm({
+        enabled:       payData.iyzico?.enabled   ?? false,
+        apiKey:        payData.iyzico?.apiKey    || '',
+        secretKey:     payData.iyzico?.secretKey || '',
+        sandbox:       payData.iyzico?.sandbox   ?? true,
+        taxRate:       payData.taxRate            ?? 20,
+        currency:      payData.currency           || 'TRY',
+        invoicePrefix: payData.invoicePrefix      || 'INV',
+      });
+    }
+  }, [payData]);
+
   useEffect(() => {
     if (smtpData) setSmtpForm({ ...DEFAULT_SMTP, ...smtpData });
   }, [smtpData]);
@@ -249,6 +274,34 @@ export default function CompanySettingsPage() {
       setTestingMail(false);
     }
   }
+
+  const payMutation = useMutation({
+    mutationFn: () => api.patch(`/companies/${activeTenantId}/payment`, {
+      iyzico: { enabled: payForm.enabled, apiKey: payForm.apiKey, secretKey: payForm.secretKey, sandbox: payForm.sandbox },
+      taxRate: payForm.taxRate,
+      currency: payForm.currency,
+      invoicePrefix: payForm.invoicePrefix,
+    }).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['company-payment', activeTenantId] });
+      toast.success('Ödeme ayarları kaydedildi');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  async function testPayConnection() {
+    setTestingPay(true);
+    try {
+      await api.post(`/companies/${activeTenantId}/payment/test`);
+      toast.success('İyzico bağlantısı başarılı!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Bağlantı başarısız — API Key / Secret Key kontrol edin');
+    } finally {
+      setTestingPay(false);
+    }
+  }
+
+  const setPay = (key, value) => setPayForm((p) => ({ ...p, [key]: value }));
 
   const setSmtp = (key, value) => setSmtpForm((p) => ({ ...p, [key]: value }));
 
@@ -305,7 +358,10 @@ export default function CompanySettingsPage() {
       {/* Tab bar */}
       <div className="mb-6 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {TABS.filter((t) => !t.agencyOnly || user?.isSuperAdmin || user?.isAgencyUser).map((t) => (
+          {TABS.filter((t) =>
+            (!t.agencyOnly || user?.isSuperAdmin || user?.isAgencyUser) &&
+            (!t.moduleRequired || company?.modules?.includes(t.moduleRequired))
+          ).map((t) => (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
@@ -594,6 +650,10 @@ export default function CompanySettingsPage() {
               <Input label="Gönderici Adı (From)" value={form.emailSettings.senderName}
                 onChange={(e) => set('emailSettings.senderName', e.target.value)}
                 placeholder="Gusto Kartepe" />
+              <Input label="Gönderici E-postası (FROM adresi)" value={form.emailSettings.fromEmail}
+                onChange={(e) => set('emailSettings.fromEmail', e.target.value)}
+                placeholder="info@gustokartepe.com"
+                hint="İletişim formu onay maillerinde gönderici adresi. Brevo'da netravox.com doğrulandığından @netravox.com uzantılı adresler direkt çalışır; başka domain için SMTP Ayarları sekmesini kullanın." />
               <Input label="Yanıt Adresi (Reply-To)" value={form.emailSettings.replyTo}
                 onChange={(e) => set('emailSettings.replyTo', e.target.value)}
                 placeholder="info@gustokartepe.com" />
@@ -833,6 +893,127 @@ export default function CompanySettingsPage() {
             )}
           </>
         )}
+
+        {/* ── ÖDEME ── */}
+        {activeTab === 'odeme' && (() => {
+          const MASKED    = '••••••••';
+          const KEY_RE    = /^[a-zA-Z0-9\-]{20,}$/;
+          const PREFIX_RE = /^[A-Z]{2,6}$/;
+          const errs = {};
+          if (payForm.apiKey && payForm.apiKey !== MASKED && !KEY_RE.test(payForm.apiKey))
+            errs.apiKey = 'En az 20 karakter, yalnızca harf · rakam · tire (-)';
+          if (payForm.secretKey && payForm.secretKey !== MASKED && !KEY_RE.test(payForm.secretKey))
+            errs.secretKey = 'En az 20 karakter, yalnızca harf · rakam · tire (-)';
+          const tax = Number(payForm.taxRate);
+          if (isNaN(tax) || tax < 0 || tax > 100 || !Number.isInteger(tax))
+            errs.taxRate = '0–100 arasında tam sayı (örn: 20)';
+          if (!PREFIX_RE.test(payForm.invoicePrefix))
+            errs.invoicePrefix = '2–6 büyük İngilizce harf (örn: INV, FAT, ORD)';
+          const hasErrors = Object.values(errs).some(Boolean);
+          const canSave   = !hasErrors && (!payForm.enabled || (payForm.apiKey && payForm.secretKey));
+          const canTest   = !errs.apiKey && payForm.apiKey && payForm.apiKey !== MASKED;
+          return (
+            <>
+              <Section title="İyzico Ödeme Sistemi">
+                <div className="rounded-lg p-4 text-sm mb-2" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
+                  <p className="font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Nasıl çalışır?</p>
+                  <p>
+                    Kendi iyzico merchant hesabınızı <strong>merchant.iyzipay.com</strong> adresinden açın.
+                    Onay sonrası API Key ve Secret Key bilgilerini aşağıya girin.
+                    Sandbox (test) modunda deneyin, sonra canlıya geçin.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl p-4"
+                  style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>İyzico Online Ödeme</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Müşterileriniz web sitenizden kart ile ödeme yapabilir</p>
+                  </div>
+                  <button type="button" onClick={() => setPay('enabled', !payForm.enabled)}
+                    className="relative w-12 h-6 rounded-full transition-colors"
+                    style={{ background: payForm.enabled ? '#6366f1' : 'var(--border)' }}>
+                    <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
+                      style={{ transform: payForm.enabled ? 'translateX(24px)' : 'translateX(0)' }} />
+                  </button>
+                </div>
+
+                <Input
+                  label="İyzico API Key"
+                  value={payForm.apiKey}
+                  onChange={(e) => setPay('apiKey', e.target.value.trim())}
+                  placeholder="sandbox-AbCdEfGhIjKlMnOpQrSt"
+                  error={errs.apiKey}
+                />
+                <Input
+                  label="İyzico Secret Key"
+                  type="password"
+                  value={payForm.secretKey}
+                  onChange={(e) => setPay('secretKey', e.target.value.trim())}
+                  placeholder="••••••••"
+                  error={errs.secretKey}
+                />
+
+                <div className="flex items-center justify-between rounded-xl p-4"
+                  style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Test Modu (Sandbox)</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      Kapalıysa gerçek ödemeler alınır — canlıya geçince kapatın
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => setPay('sandbox', !payForm.sandbox)}
+                    className="relative w-12 h-6 rounded-full transition-colors"
+                    style={{ background: payForm.sandbox ? '#f59e0b' : '#22c55e' }}>
+                    <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
+                      style={{ transform: payForm.sandbox ? 'translateX(24px)' : 'translateX(0)' }} />
+                  </button>
+                </div>
+              </Section>
+
+              <Section title="Fatura & Ödeme Ayarları">
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="KDV Oranı (%)"
+                    type="number"
+                    min={0} max={100}
+                    value={payForm.taxRate}
+                    onChange={(e) => setPay('taxRate', e.target.value === '' ? '' : Number(e.target.value))}
+                    error={errs.taxRate}
+                  />
+                  <Select
+                    label="Para Birimi"
+                    value={payForm.currency}
+                    onChange={(e) => setPay('currency', e.target.value)}
+                  >
+                    <option value="TRY">TRY — Türk Lirası</option>
+                    <option value="USD">USD — Dolar</option>
+                    <option value="EUR">EUR — Euro</option>
+                  </Select>
+                  <Input
+                    label="Fatura Prefix"
+                    value={payForm.invoicePrefix}
+                    onChange={(e) => setPay('invoicePrefix', e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6))}
+                    placeholder="INV"
+                    error={errs.invoicePrefix}
+                  />
+                </div>
+              </Section>
+
+              <div className="flex gap-3">
+                <Button variant="secondary" onClick={testPayConnection}
+                  disabled={testingPay || !canTest}>
+                  {testingPay ? 'Test ediliyor...' : 'Bağlantıyı Test Et'}
+                </Button>
+                <Button onClick={() => payMutation.mutate()}
+                  loading={payMutation.isPending}
+                  disabled={payMutation.isPending || !canSave}>
+                  Kaydet
+                </Button>
+              </div>
+            </>
+          );
+        })()}
 
         {activeTab === 'moduller' && (user?.isSuperAdmin || user?.isAgencyUser) && (
           <ModulesTab activeTenantId={activeTenantId} />

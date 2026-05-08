@@ -5,6 +5,7 @@ import api from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { ShoppingBag, TrendingUp, Calendar, Search } from 'lucide-react';
+import DatePicker from '../components/ui/DatePicker';
 
 const STATUS_LABELS = {
   pending:   { label: 'Bekliyor',    color: 'bg-yellow-100 text-yellow-700' },
@@ -102,12 +103,8 @@ export default function OrdersPage() {
             <option key={v} value={v}>{label}</option>
           ))}
         </select>
-        <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-          className="rounded-xl px-3 py-2 text-sm border outline-none"
-          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }} />
-        <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-          className="rounded-xl px-3 py-2 text-sm border outline-none"
-          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }} />
+        <DatePicker value={dateFrom} onChange={(v) => { setDateFrom(v); setPage(1); }} placeholder="Başlangıç" />
+        <DatePicker value={dateTo}   onChange={(v) => { setDateTo(v);   setPage(1); }} placeholder="Bitiş" />
       </div>
 
       {/* Tablo */}
