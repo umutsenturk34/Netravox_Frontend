@@ -13,13 +13,15 @@ const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '👕', '🧥', '🧢', '👜', '⭐', '🎁', '📦', '🛍️', '🚗', '🚙', '🏎️', '🚌', '⚡'];
 
 const SECTOR_LABELS = {
-  dental:  { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false, material: false, vehicle: false },
-  beauty:  { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',     sizes: false, material: false, vehicle: false },
-  hotel:   { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness', sizes: false, material: false, vehicle: false },
-  service: { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',     sizes: false, material: false, vehicle: false },
-  rent:    { page: 'Araç Filosu',           item: 'Araç',   placeholder: 'Toyota Corolla', sizes: false, material: false, vehicle: true  },
-  other:   { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',       sizes: true,  material: true,  vehicle: false },
-  default: { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',sizes: true,  material: true,  vehicle: false },
+  dental:    { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false, material: false, vehicle: false },
+  clinic:    { page: 'Klinik Hizmetleri',     item: 'Hizmet', placeholder: 'Muayene',         sizes: false, material: false, vehicle: false },
+  beauty:    { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',      sizes: false, material: false, vehicle: false },
+  hotel:     { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness',  sizes: false, material: false, vehicle: false },
+  service:   { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',      sizes: false, material: false, vehicle: false },
+  rent:      { page: 'Araç Filosu',           item: 'Araç',   placeholder: 'Toyota Corolla',  sizes: false, material: false, vehicle: true  },
+  retail:    { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',        sizes: true,  material: true,  vehicle: false },
+  other:     { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false },
+  default:   { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false },
 };
 
 const FUEL_TYPES = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];

@@ -12,15 +12,16 @@ export default function Topbar() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
+  const isPrivileged = user?.isSuperAdmin || user?.isAgencyUser;
+
   const { data: companies } = useQuery({
     queryKey: ['my-companies'],
     queryFn: async () => {
-      if (user?.isSuperAdmin) {
-        return api.get('/companies').then((r) => r.data);
-      }
-      return user?.companyRoles?.map((cr) => ({ _id: cr.tenantId, name: cr.tenantId })) || [];
+      if (user?.isSuperAdmin) return api.get('/companies').then((r) => r.data);
+      if (user?.isAgencyUser) return api.get('/companies').then((r) => r.data);
+      return [];
     },
-    enabled: !!user,
+    enabled: !!user && isPrivileged,
   });
 
   // Aktif firmanın detaylarını çek (logo, marka rengi)
@@ -60,7 +61,7 @@ export default function Topbar() {
       style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
     >
       {/* Firma logosu / seçici */}
-      {companies?.length > 1 ? (
+      {isPrivileged && companies?.length > 1 ? (
         <div className="relative flex items-center gap-1">
           {logoUrl && (
             <img src={logoUrl} alt={companyName} className="h-6 w-auto object-contain mr-1" />

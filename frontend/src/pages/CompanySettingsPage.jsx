@@ -386,8 +386,8 @@ export default function CompanySettingsPage() {
               <Select label="Sektör" value={form.sector} onChange={(e) => set('sector', e.target.value)}>
                 {SECTORS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </Select>
-              <Input label="Domain (örn: gusto.com.tr)" value={form.domain} onChange={(e) => set('domain', e.target.value)} placeholder="gusto.com.tr" />
-              <Input label="Subdomain (örn: gusto)" value={form.subdomain} onChange={(e) => set('subdomain', e.target.value)} placeholder="gusto" />
+              <Input label="Domain (örn: firmaniz.com.tr)" value={form.domain} onChange={(e) => set('domain', e.target.value)} placeholder="firmaniz.com.tr" />
+              <Input label="Subdomain (örn: firmaadi)" value={form.subdomain} onChange={(e) => set('subdomain', e.target.value)} placeholder="firmaadi" />
             </Section>
 
             <Section title="Marka Renkleri">
@@ -497,27 +497,27 @@ export default function CompanySettingsPage() {
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ana sayfanın tam ekran üst bölümündeki başlık</p>
               <Input label="Hero Başlık (Türkçe)" value={form.content.heroTitle.tr}
                 onChange={(e) => set('content.heroTitle.tr', e.target.value)}
-                placeholder="Doğayla İç İçe Bir Sofra Deneyimi" />
+                placeholder="Profesyonel hizmet, güvenilir çözümler" />
               <Input label="Hero Başlık (İngilizce)" value={form.content.heroTitle.en}
                 onChange={(e) => set('content.heroTitle.en', e.target.value)}
-                placeholder="A Dining Experience in the Heart of Nature" />
+                placeholder="Professional service, reliable solutions" />
             </Section>
 
             <Section title="Testimonial (Müşteri Yorumu)">
               <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Ana sayfa ve hakkımızda sayfasında görünen alıntı</p>
               <Textarea label="Alıntı (Türkçe)" value={form.content.testimonial.quote.tr}
                 onChange={(e) => set('content.testimonial.quote.tr', e.target.value)}
-                placeholder="Hayatımda deneyimlediğim en lüks kahvaltıydı..." />
+                placeholder="Hayatımda aldığım en iyi hizmetlerden biriydi..." />
               <Textarea label="Alıntı (İngilizce)" value={form.content.testimonial.quote.en}
                 onChange={(e) => set('content.testimonial.quote.en', e.target.value)}
-                placeholder="The most luxurious breakfast I've ever had..." />
+                placeholder="One of the best services I've ever experienced..." />
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Yazar Adı" value={form.content.testimonial.author}
                   onChange={(e) => set('content.testimonial.author', e.target.value)}
                   placeholder="Ayşe Yılmaz" />
                 <Input label="Yazar Rolü / Kaynağı" value={form.content.testimonial.role}
                   onChange={(e) => set('content.testimonial.role', e.target.value)}
-                  placeholder="Misafir · Google Yorumu" />
+                  placeholder="Müşteri · Google Yorumu" />
               </div>
             </Section>
 
@@ -525,43 +525,52 @@ export default function CompanySettingsPage() {
               <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Firma tanıtım metninin altında gösterilir (Genel sekmesindeki açıklama 1. paragraf olarak kullanılır)</p>
               <Textarea label="2. Paragraf (Türkçe)" value={form.content.aboutParagraph2.tr}
                 onChange={(e) => set('content.aboutParagraph2.tr', e.target.value)}
-                placeholder="Tüm malzemelerimizi yerel çiftçilerden ve sürdürülebilir kaynaklardan temin ediyor..." rows={3} />
+                placeholder="Müşterilerimize en kaliteli hizmeti sunmak için sürekli gelişiyoruz..." rows={3} />
               <Textarea label="2. Paragraf (İngilizce)" value={form.content.aboutParagraph2.en}
                 onChange={(e) => set('content.aboutParagraph2.en', e.target.value)}
-                placeholder="We source all our ingredients from local farmers..." rows={3} />
+                placeholder="We continuously improve to offer the highest quality service to our customers..." rows={3} />
               <Textarea label="3. Paragraf (Türkçe)" value={form.content.aboutParagraph3.tr}
                 onChange={(e) => set('content.aboutParagraph3.tr', e.target.value)}
-                placeholder="Köklü bir misafirperver anlayışıyla hizmet veren ekibimiz..." rows={3} />
+                placeholder="Deneyimli ekibimizle her zaman yanınızdayız..." rows={3} />
               <Textarea label="3. Paragraf (İngilizce)" value={form.content.aboutParagraph3.en}
                 onChange={(e) => set('content.aboutParagraph3.en', e.target.value)}
-                placeholder="Our team, rooted in warm hospitality..." rows={3} />
+                placeholder="With our experienced team, we are always here for you..." rows={3} />
             </Section>
 
-            <Section title="Sayfa Alt Başlıkları">
-              <Input label="Menü Sayfası Alt Başlığı (TR)" value={form.content.menuSubtitle.tr}
-                onChange={(e) => set('content.menuSubtitle.tr', e.target.value)}
-                placeholder="Yerel üreticilerden gelen taze malzemelerle hazırlanan, mevsimlik lezzetler." />
-              <Input label="Menü Sayfası Alt Başlığı (EN)" value={form.content.menuSubtitle.en}
-                onChange={(e) => set('content.menuSubtitle.en', e.target.value)} />
-              <Input label="Rezervasyon Alt Başlığı (TR)" value={form.content.reservationSubtitle.tr}
-                onChange={(e) => set('content.reservationSubtitle.tr', e.target.value)}
-                placeholder="En az 24 saat öncesinden rezervasyon oluşturmanızı öneririz." />
-              <Input label="Rezervasyon Alt Başlığı (EN)" value={form.content.reservationSubtitle.en}
-                onChange={(e) => set('content.reservationSubtitle.en', e.target.value)} />
-            </Section>
+            {form.sector === 'restaurant' && (
+              <Section title="Menü Sayfası Alt Başlığı">
+                <Input label="Türkçe" value={form.content.menuSubtitle.tr}
+                  onChange={(e) => set('content.menuSubtitle.tr', e.target.value)}
+                  placeholder="Mevsimlik malzemelerle hazırlanan lezzetler." />
+                <Input label="İngilizce" value={form.content.menuSubtitle.en}
+                  onChange={(e) => set('content.menuSubtitle.en', e.target.value)} />
+              </Section>
+            )}
 
-            <Section title="Rezervasyon Saat Dilimleri">
-              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Rezervasyon formunda gösterilecek saatler (HH:MM formatında, virgülle ayırın)</p>
-              <Input
-                label="Saatler"
-                value={form.content.reservationSlots.join(', ')}
-                onChange={(e) => set('content.reservationSlots', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
-                placeholder="08:00, 09:00, 10:00, 12:00, 13:00, 19:00, 20:00, 21:00"
-              />
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                Mevcut: {form.content.reservationSlots.length ? form.content.reservationSlots.join(' · ') : '(varsayılan kullanılır)'}
-              </p>
-            </Section>
+            {['restaurant', 'clinic', 'beauty'].includes(form.sector) && (
+              <>
+                <Section title="Rezervasyon Alt Başlığı">
+                  <Input label="Türkçe" value={form.content.reservationSubtitle.tr}
+                    onChange={(e) => set('content.reservationSubtitle.tr', e.target.value)}
+                    placeholder="En az 24 saat öncesinden rezervasyon oluşturmanızı öneririz." />
+                  <Input label="İngilizce" value={form.content.reservationSubtitle.en}
+                    onChange={(e) => set('content.reservationSubtitle.en', e.target.value)} />
+                </Section>
+
+                <Section title="Rezervasyon Saat Dilimleri">
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Rezervasyon formunda gösterilecek saatler (HH:MM formatında, virgülle ayırın)</p>
+                  <Input
+                    label="Saatler"
+                    value={form.content.reservationSlots.join(', ')}
+                    onChange={(e) => set('content.reservationSlots', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
+                    placeholder="08:00, 09:00, 10:00, 12:00, 13:00, 19:00, 20:00, 21:00"
+                  />
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    Mevcut: {form.content.reservationSlots.length ? form.content.reservationSlots.join(' · ') : '(varsayılan kullanılır)'}
+                  </p>
+                </Section>
+              </>
+            )}
           </>
         )}
 
@@ -649,20 +658,20 @@ export default function CompanySettingsPage() {
               </p>
               <Input label="Gönderici Adı (From)" value={form.emailSettings.senderName}
                 onChange={(e) => set('emailSettings.senderName', e.target.value)}
-                placeholder="Gusto Kartepe" />
+                placeholder="Firma Adı" />
               <Input label="Gönderici E-postası (FROM adresi)" value={form.emailSettings.fromEmail}
                 onChange={(e) => set('emailSettings.fromEmail', e.target.value)}
-                placeholder="info@gustokartepe.com"
-                hint="İletişim formu onay maillerinde gönderici adresi. Brevo'da netravox.com doğrulandığından @netravox.com uzantılı adresler direkt çalışır; başka domain için SMTP Ayarları sekmesini kullanın." />
+                placeholder="info@firmaniz.com"
+                hint={'İletişim formu onay maillerinde gönderici adresi. Brevo\'da netravox.com doğrulandığından @netravox.com uzantılı adresler direkt çalışır; başka domain için SMTP Ayarları sekmesini kullanın.'} />
               <Input label="Yanıt Adresi (Reply-To)" value={form.emailSettings.replyTo}
                 onChange={(e) => set('emailSettings.replyTo', e.target.value)}
-                placeholder="info@gustokartepe.com" />
+                placeholder="info@firmaniz.com" />
               <Input label="Telefon (e-postada gösterilir)" value={form.emailSettings.phone}
                 onChange={(e) => set('emailSettings.phone', e.target.value)}
-                placeholder="+90 262 500 12 34" />
+                placeholder="+90 212 000 00 00" />
               <Input label="Konum (başlık altında)" value={form.emailSettings.location}
                 onChange={(e) => set('emailSettings.location', e.target.value)}
-                placeholder="Kartepe · Kocaeli" />
+                placeholder="İstanbul · Türkiye" />
               <div>
                 <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                   Vurgu Rengi
@@ -679,39 +688,43 @@ export default function CompanySettingsPage() {
               </div>
               <Textarea label="Footer Alıntısı (e-posta alt kısmı)" value={form.emailSettings.footerQuote}
                 onChange={(e) => set('emailSettings.footerQuote', e.target.value)}
-                placeholder='"Doğayla iç içe bir sofra deneyimi için sizi bekliyoruz."'
+                placeholder='"Müşterilerimize en iyi hizmeti sunmak için buradayız."'
                 rows={2} />
             </Section>
 
-            <Section title="✓ Onay E-postası">
-              <div className="rounded-lg p-3 mb-2" style={{ background: '#F0FAF4', border: '1px solid #C3E6CB' }}>
-                <p className="text-xs font-medium" style={{ color: '#2D6A4F' }}>
-                  Rezervasyon "Onaylandı" durumuna geçtiğinde müşteriye gönderilir.
-                </p>
-              </div>
-              <Input label="E-posta Konusu (Subject)" value={form.emailSettings.confirmedSubject}
-                onChange={(e) => set('emailSettings.confirmedSubject', e.target.value)}
-                placeholder="✓ Rezervasyonunuz Onaylandı — Gusto Kartepe" />
-              <Textarea label="Onay Mesajı (hero bölümü altında)" value={form.emailSettings.confirmedMessage}
-                onChange={(e) => set('emailSettings.confirmedMessage', e.target.value)}
-                placeholder="Sizi aramızda görmekten mutluluk duyacağız. Aşağıda rezervasyon detaylarınızı bulabilirsiniz."
-                rows={3} />
-            </Section>
+            {['restaurant', 'clinic', 'beauty'].includes(form.sector) && (
+              <>
+                <Section title="✓ Onay E-postası">
+                  <div className="rounded-lg p-3 mb-2" style={{ background: '#F0FAF4', border: '1px solid #C3E6CB' }}>
+                    <p className="text-xs font-medium" style={{ color: '#2D6A4F' }}>
+                      Rezervasyon "Onaylandı" durumuna geçtiğinde müşteriye gönderilir.
+                    </p>
+                  </div>
+                  <Input label="E-posta Konusu (Subject)" value={form.emailSettings.confirmedSubject}
+                    onChange={(e) => set('emailSettings.confirmedSubject', e.target.value)}
+                    placeholder="✓ Rezervasyonunuz Onaylandı" />
+                  <Textarea label="Onay Mesajı (hero bölümü altında)" value={form.emailSettings.confirmedMessage}
+                    onChange={(e) => set('emailSettings.confirmedMessage', e.target.value)}
+                    placeholder="Sizi aramızda görmekten mutluluk duyacağız. Aşağıda rezervasyon detaylarınızı bulabilirsiniz."
+                    rows={3} />
+                </Section>
 
-            <Section title="✕ Red E-postası">
-              <div className="rounded-lg p-3 mb-2" style={{ background: '#FFF8ED', border: '1px solid #E8D5A0' }}>
-                <p className="text-xs font-medium" style={{ color: '#8B6914' }}>
-                  Rezervasyon "Reddedildi" durumuna geçtiğinde müşteriye gönderilir.
-                </p>
-              </div>
-              <Input label="E-posta Konusu (Subject)" value={form.emailSettings.rejectedSubject}
-                onChange={(e) => set('emailSettings.rejectedSubject', e.target.value)}
-                placeholder="Rezervasyon Talebiniz Hakkında — Gusto Kartepe" />
-              <Textarea label="Red Mesajı (müşteri adından sonra gelir)" value={form.emailSettings.rejectedMessage}
-                onChange={(e) => set('emailSettings.rejectedMessage', e.target.value)}
-                placeholder="maalesef talep ettiğiniz tarih ve saatte müsait masa bulunamamaktadır."
-                rows={3} />
-            </Section>
+                <Section title="✕ Red E-postası">
+                  <div className="rounded-lg p-3 mb-2" style={{ background: '#FFF8ED', border: '1px solid #E8D5A0' }}>
+                    <p className="text-xs font-medium" style={{ color: '#8B6914' }}>
+                      Rezervasyon "Reddedildi" durumuna geçtiğinde müşteriye gönderilir.
+                    </p>
+                  </div>
+                  <Input label="E-posta Konusu (Subject)" value={form.emailSettings.rejectedSubject}
+                    onChange={(e) => set('emailSettings.rejectedSubject', e.target.value)}
+                    placeholder="Rezervasyon Talebiniz Hakkında" />
+                  <Textarea label="Red Mesajı (müşteri adından sonra gelir)" value={form.emailSettings.rejectedMessage}
+                    onChange={(e) => set('emailSettings.rejectedMessage', e.target.value)}
+                    placeholder="maalesef talep ettiğiniz tarih ve saatte müsaitlik bulunamamaktadır."
+                    rows={3} />
+                </Section>
+              </>
+            )}
           </>
         )}
 
@@ -833,11 +846,11 @@ export default function CompanySettingsPage() {
         {/* ── SOSYAL & DİĞER ── */}
         {activeTab === 'sosyal' && (
           <Section title="Sosyal Medya">
-            <Input label="Instagram" value={form.socialLinks.instagram} onChange={(e) => set('socialLinks.instagram', e.target.value)} placeholder="https://instagram.com/gustokartepe" />
-            <Input label="Facebook" value={form.socialLinks.facebook} onChange={(e) => set('socialLinks.facebook', e.target.value)} placeholder="https://facebook.com/gustokartepe" />
-            <Input label="Twitter / X" value={form.socialLinks.twitter} onChange={(e) => set('socialLinks.twitter', e.target.value)} placeholder="https://twitter.com/gustokartepe" />
-            <Input label="YouTube" value={form.socialLinks.youtube} onChange={(e) => set('socialLinks.youtube', e.target.value)} placeholder="https://youtube.com/@gustokartepe" />
-            <Input label="TikTok" value={form.socialLinks.tiktok} onChange={(e) => set('socialLinks.tiktok', e.target.value)} placeholder="https://tiktok.com/@gustokartepe" />
+            <Input label="Instagram" value={form.socialLinks.instagram} onChange={(e) => set('socialLinks.instagram', e.target.value)} placeholder="https://instagram.com/firmaadi" />
+            <Input label="Facebook" value={form.socialLinks.facebook} onChange={(e) => set('socialLinks.facebook', e.target.value)} placeholder="https://facebook.com/firmaadi" />
+            <Input label="Twitter / X" value={form.socialLinks.twitter} onChange={(e) => set('socialLinks.twitter', e.target.value)} placeholder="https://twitter.com/firmaadi" />
+            <Input label="YouTube" value={form.socialLinks.youtube} onChange={(e) => set('socialLinks.youtube', e.target.value)} placeholder="https://youtube.com/@firmaadi" />
+            <Input label="TikTok" value={form.socialLinks.tiktok} onChange={(e) => set('socialLinks.tiktok', e.target.value)} placeholder="https://tiktok.com/@firmaadi" />
           </Section>
         )}
 
