@@ -148,7 +148,9 @@ export default function DashboardPage() {
     ? analyticsData
     : mockAnalytics(activeTenantId || '');
 
+  // Uyarıyı sadece GA4 ID hiç girilmemişse göster
   const isMock = !analyticsData?.configured;
+  const showDemoWarning = isMock && analyticsData?.reason === 'no_property_id';
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi günler' : 'İyi akşamlar';
 
@@ -174,7 +176,7 @@ export default function DashboardPage() {
       </div>
 
       {/* GA4 bağlı değil uyarısı */}
-      {isMock && !analyticsLoading && (
+      {showDemoWarning && !analyticsLoading && (
         <div
           className="flex items-start gap-3 rounded-xl border px-4 py-3"
           style={{ borderColor: '#fbbf24', background: '#fffbeb' }}
