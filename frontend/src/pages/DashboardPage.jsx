@@ -175,7 +175,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* GA4 bağlı değil uyarısı */}
+      {/* GA4 ID girilmemiş uyarısı */}
       {showDemoWarning && !analyticsLoading && (
         <div
           className="flex items-start gap-3 rounded-xl border px-4 py-3"
@@ -183,8 +183,8 @@ export default function DashboardPage() {
         >
           <AlertCircle size={16} className="shrink-0 mt-0.5" style={{ color: '#d97706' }} />
           <div className="text-sm">
-            <span className="font-semibold" style={{ color: '#92400e' }}>Demo verisi gösteriliyor.</span>
-            <span style={{ color: '#78350f' }}> Gerçek analitik için{' '}
+            <span className="font-semibold" style={{ color: '#92400e' }}>Analitik takibi aktif değil.</span>
+            <span style={{ color: '#78350f' }}> Ziyaretçi verilerini görmek için{' '}
               <Link to="/seo" className="underline font-medium">SEO → Google Analytics ID</Link>{' '}
               alanına GA4 ölçüm kimliğinizi girin.
             </span>
@@ -193,15 +193,32 @@ export default function DashboardPage() {
       )}
 
       {/* Stat kartları */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} iconColor="#6366f1" label="Ziyaretçi" value={analytics.stats?.visitors?.toLocaleString('tr')} trend={analytics.stats?.visitorTrend} isLoading={analyticsLoading} />
-        <StatCard icon={Eye} iconColor="#8b5cf6" label="Sayfa Görüntülenme" value={analytics.stats?.pageViews?.toLocaleString('tr')} trend={analytics.stats?.pageViewTrend} isLoading={analyticsLoading} />
-        <StatCard icon={MonitorSmartphone} iconColor="#06b6d4" label="Oturum" value={analytics.stats?.sessions?.toLocaleString('tr')} trend={analytics.stats?.sessionTrend} isLoading={analyticsLoading} />
-        <StatCard icon={Clock} iconColor="#f59e0b" label="Ort. Oturum Süresi" value={analytics.stats?.avgDuration} isLoading={analyticsLoading} />
-      </div>
+      {isMock ? (
+        <div className="rounded-2xl border p-8 flex flex-col items-center justify-center text-center gap-3"
+          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', minHeight: 160 }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#6366f118' }}>
+            <TrendingUp size={20} style={{ color: '#6366f1' }} />
+          </div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {analyticsData?.reason === 'no_property_id' ? 'GA4 henüz bağlanmadı' : 'Veriler bekleniyor'}
+          </p>
+          <p className="text-xs max-w-xs" style={{ color: 'var(--text-muted)' }}>
+            {analyticsData?.reason === 'no_property_id'
+              ? 'SEO sayfasından Google Analytics ID\'nizi girin.'
+              : 'GA4 takip kodu aktif. Ziyaretçi verileri 24-48 saat içinde burada görünecek.'}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={Users} iconColor="#6366f1" label="Ziyaretçi" value={analytics.stats?.visitors?.toLocaleString('tr')} trend={analytics.stats?.visitorTrend} isLoading={analyticsLoading} />
+          <StatCard icon={Eye} iconColor="#8b5cf6" label="Sayfa Görüntülenme" value={analytics.stats?.pageViews?.toLocaleString('tr')} trend={analytics.stats?.pageViewTrend} isLoading={analyticsLoading} />
+          <StatCard icon={MonitorSmartphone} iconColor="#06b6d4" label="Oturum" value={analytics.stats?.sessions?.toLocaleString('tr')} trend={analytics.stats?.sessionTrend} isLoading={analyticsLoading} />
+          <StatCard icon={Clock} iconColor="#f59e0b" label="Ort. Oturum Süresi" value={analytics.stats?.avgDuration} isLoading={analyticsLoading} />
+        </div>
+      )}
 
       {/* Trafik Grafiği + Kaynaklar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {!isMock && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Alan grafiği */}
         <div className="lg:col-span-2 rounded-2xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between mb-4">
@@ -277,10 +294,10 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* En çok ziyaret edilen sayfalar */}
-      <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+      {!isMock && <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <div>
             <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Sayfa İstatistikleri</p>
@@ -335,7 +352,7 @@ export default function DashboardPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </div>}
 
       {/* CMS Özet Kartları */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
