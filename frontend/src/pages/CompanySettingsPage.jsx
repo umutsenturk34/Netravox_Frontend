@@ -96,7 +96,7 @@ export default function CompanySettingsPage() {
       { days: 'Cumartesi – Pazar', hours: '07:30 – 23:00' },
     ],
     socialLinks: { instagram: '', facebook: '', twitter: '', youtube: '', tiktok: '' },
-    integrations: { analyticsPropertyId: '' },
+    integrations: {},
     features: { aiContent: false, whatsapp: false },
     emailSettings: {
       senderName: '',
@@ -158,9 +158,7 @@ export default function CompanySettingsPage() {
           youtube: company.socialLinks?.youtube || '',
           tiktok: company.socialLinks?.tiktok || '',
         },
-        integrations: {
-          analyticsPropertyId: company.integrations?.analyticsPropertyId || '',
-        },
+        integrations: {},
         features: {
           aiContent: company.features?.aiContent ?? false,
           whatsapp:  company.features?.whatsapp  ?? false,
@@ -857,19 +855,6 @@ export default function CompanySettingsPage() {
         {/* ── ENTEGRASYONLAR ── */}
         {activeTab === 'entegrasyon' && (
           <>
-            <Section title="Google Analytics 4">
-              <div className="rounded-lg p-4 text-sm mb-2" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
-                <p className="font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Nasıl bulunur?</p>
-                <p>GA4 → Yönetici → Veri Akışları → Web akışı → <strong>Ölçüm Kimliği</strong> (örn: <code>G-XXXXXXXXXX</code>)</p>
-              </div>
-              <Input
-                label="GA4 Ölçüm Kimliği (Measurement ID)"
-                value={form.integrations.analyticsPropertyId}
-                onChange={(e) => set('integrations.analyticsPropertyId', e.target.value.trim())}
-                placeholder="G-XXXXXXXXXX"
-              />
-            </Section>
-
             {user?.isSuperAdmin && (
               <Section title="🔒 Firma Özellikleri (Netravox Yönetimi)">
                 <div className="rounded-lg p-4 text-sm mb-4" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>

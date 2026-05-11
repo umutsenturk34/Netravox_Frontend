@@ -183,8 +183,8 @@ export default function DashboardPage() {
           <div className="text-sm">
             <span className="font-semibold" style={{ color: '#92400e' }}>Demo verisi gösteriliyor.</span>
             <span style={{ color: '#78350f' }}> Gerçek analitik için{' '}
-              <Link to="/settings" className="underline font-medium">Firma Ayarları → Entegrasyonlar</Link>'dan
-              GA4 Property ID'nizi girin.
+              <Link to="/seo" className="underline font-medium">SEO → Google Analytics ID</Link>{' '}
+              alanına GA4 ölçüm kimliğinizi girin.
             </span>
           </div>
         </div>
