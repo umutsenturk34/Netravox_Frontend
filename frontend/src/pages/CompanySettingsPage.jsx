@@ -860,14 +860,13 @@ export default function CompanySettingsPage() {
             <Section title="Google Analytics 4">
               <div className="rounded-lg p-4 text-sm mb-2" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
                 <p className="font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Nasıl bulunur?</p>
-                <p>GA4 → Yönetici → Mülk Ayarları → <strong>Mülk Kimliği</strong> (sadece sayısal kısım, örn: <code>323456789</code>)</p>
-                <p className="mt-1">Servis hesabı e-postasını da GA4 mülkünüze <strong>Görüntüleyici</strong> olarak eklemeniz gerekir.</p>
+                <p>GA4 → Yönetici → Veri Akışları → Web akışı → <strong>Ölçüm Kimliği</strong> (örn: <code>G-XXXXXXXXXX</code>)</p>
               </div>
               <Input
-                label="GA4 Mülk Kimliği (Property ID)"
+                label="GA4 Ölçüm Kimliği (Measurement ID)"
                 value={form.integrations.analyticsPropertyId}
-                onChange={(e) => set('integrations.analyticsPropertyId', e.target.value.replace(/\D/g, ''))}
-                placeholder="323456789"
+                onChange={(e) => set('integrations.analyticsPropertyId', e.target.value.trim())}
+                placeholder="G-XXXXXXXXXX"
               />
             </Section>
 
