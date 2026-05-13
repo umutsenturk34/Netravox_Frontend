@@ -287,7 +287,7 @@ function SchemaTab({ activeTenantId }) {
 export default function SeoPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { activeTenantId } = useAuth();
+  const { activeTenantId, activeCompany } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
   const [form, setForm] = useState({
     siteName: { tr: '', en: '' },
@@ -295,6 +295,7 @@ export default function SeoPage() {
     defaultMetaDescription: { tr: '', en: '' },
     defaultOgImage: '',
     googleAnalyticsId: '',
+    ga4PropertyId: '',
     googleTagManagerId: '',
     metaPixelId: '',
     searchConsoleVerification: '',
@@ -316,6 +317,7 @@ export default function SeoPage() {
         defaultMetaDescription: data.defaultMetaDescription || { tr: '', en: '' },
         defaultOgImage: data.defaultOgImage || '',
         googleAnalyticsId: data.googleAnalyticsId || '',
+        ga4PropertyId: data.ga4PropertyId || '',
         googleTagManagerId: data.googleTagManagerId || '',
         metaPixelId: data.metaPixelId || '',
         searchConsoleVerification: data.searchConsoleVerification || '',
@@ -365,8 +367,8 @@ export default function SeoPage() {
       {activeTab === 'general' && (
         <div className="space-y-5 rounded-xl border p-5" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Site Adı (TR)" value={form.siteName.tr} onChange={(e) => setLang('siteName', 'tr', e.target.value)} placeholder="Gusto Kartepe" />
-            <Input label="Site Adı (EN)" value={form.siteName.en} onChange={(e) => setLang('siteName', 'en', e.target.value)} placeholder="Gusto Kartepe" />
+            <Input label="Site Adı (TR)" value={form.siteName.tr} onChange={(e) => setLang('siteName', 'tr', e.target.value)} placeholder={activeCompany?.name || 'Site adı'} />
+            <Input label="Site Adı (EN)" value={form.siteName.en} onChange={(e) => setLang('siteName', 'en', e.target.value)} placeholder={activeCompany?.name || 'Site adı'} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Meta Başlık (TR)" value={form.defaultMetaTitle.tr} onChange={(e) => setLang('defaultMetaTitle', 'tr', e.target.value)} />
@@ -378,7 +380,8 @@ export default function SeoPage() {
           </div>
           <ImageUrlInput label="Varsayılan OG Görseli URL" value={form.defaultOgImage} onChange={(e) => set('defaultOgImage', e.target.value)} hint="1200×630px" />
           <div className="border-t pt-4 space-y-4" style={{ borderColor: 'var(--border)' }}>
-            <Input label="Google Analytics ID" value={form.googleAnalyticsId} onChange={(e) => set('googleAnalyticsId', e.target.value)} placeholder="G-XXXXXXXXXX" />
+            <Input label="Google Analytics ID (Measurement ID)" value={form.googleAnalyticsId} onChange={(e) => set('googleAnalyticsId', e.target.value)} placeholder="G-XXXXXXXXXX" />
+            <Input label="GA4 Property ID (Dashboard verisi için)" value={form.ga4PropertyId} onChange={(e) => set('ga4PropertyId', e.target.value)} placeholder="320484123" hint="GA4 Admin → Property Settings → Property ID (sadece sayı)" />
             <Input label="Google Tag Manager ID" value={form.googleTagManagerId} onChange={(e) => set('googleTagManagerId', e.target.value)} placeholder="GTM-XXXXXXX" />
             <Input label="Meta Pixel ID" value={form.metaPixelId} onChange={(e) => set('metaPixelId', e.target.value)} placeholder="000000000000000" />
             <Input label="Search Console Doğrulama Kodu" value={form.searchConsoleVerification} onChange={(e) => set('searchConsoleVerification', e.target.value)} placeholder="google-site-verification=..." />

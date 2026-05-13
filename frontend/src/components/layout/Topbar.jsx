@@ -49,10 +49,6 @@ export default function Topbar() {
     navigate('/login');
   };
 
-  const logoUrl = theme === 'dark'
-    ? activeCompany?.branding?.logoDark || activeCompany?.branding?.logoLight
-    : activeCompany?.branding?.logoLight || activeCompany?.branding?.logoDark;
-
   const companyName = companies?.find((c) => c._id === activeTenantId)?.name || activeCompany?.name || '';
 
   return (
@@ -63,9 +59,6 @@ export default function Topbar() {
       {/* Firma logosu / seçici */}
       {isPrivileged && companies?.length > 1 ? (
         <div className="relative flex items-center gap-1">
-          {logoUrl && (
-            <img src={logoUrl} alt={companyName} className="h-6 w-auto object-contain mr-1" />
-          )}
           <select
             value={activeTenantId || ''}
             onChange={(e) => handleTenantChange(e.target.value)}
@@ -85,13 +78,9 @@ export default function Topbar() {
         </div>
       ) : (
         <div className="flex items-center gap-2.5">
-          {logoUrl ? (
-            <img src={logoUrl} alt={companyName} className="h-7 w-auto max-w-[120px] object-contain" />
-          ) : (
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {companyName}
-            </span>
-          )}
+          <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {companyName}
+          </span>
         </div>
       )}
 

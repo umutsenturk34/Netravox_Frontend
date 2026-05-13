@@ -13,15 +13,15 @@ const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '👕', '🧥', '🧢', '👜', '⭐', '🎁', '📦', '🛍️', '🚗', '🚙', '🏎️', '🚌', '⚡'];
 
 const SECTOR_LABELS = {
-  dental:    { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false, material: false, vehicle: false },
-  clinic:    { page: 'Klinik Hizmetleri',     item: 'Hizmet', placeholder: 'Muayene',         sizes: false, material: false, vehicle: false },
-  beauty:    { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',      sizes: false, material: false, vehicle: false },
-  hotel:     { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness',  sizes: false, material: false, vehicle: false },
-  service:   { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',      sizes: false, material: false, vehicle: false },
-  rent:      { page: 'Araç Filosu',           item: 'Araç',   placeholder: 'Toyota Corolla',  sizes: false, material: false, vehicle: true  },
-  retail:    { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',        sizes: true,  material: true,  vehicle: false },
-  other:     { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false },
-  default:   { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false },
+  dental:    { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  clinic:    { page: 'Klinik Hizmetleri',     item: 'Hizmet', placeholder: 'Muayene',         sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  beauty:    { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',      sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  hotel:     { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness',  sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  service:   { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',      sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  rent:      { page: 'Araç Filosu',           item: 'Araç',   placeholder: 'Toyota Corolla',  sizes: false, material: false, vehicle: true,  category: true,  sku: false, categoryPlaceholder: 'SUV, Sedan, Van...' },
+  retail:    { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',        sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'T-Shirts, Hoodies...' },
+  other:     { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  default:   { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
 };
 
 const FUEL_TYPES = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];
@@ -263,7 +263,7 @@ export default function DentalServicesPage() {
               type="text"
               value={filterSearch}
               onChange={e => setFilterSearch(e.target.value)}
-              placeholder="Ad, SKU veya ID ile ara..."
+              placeholder={labels.sku ? 'Ad, SKU veya ID ile ara...' : 'Ad veya ID ile ara...'}
               className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '14px' }}
             />
@@ -272,7 +272,7 @@ export default function DentalServicesPage() {
             )}
           </div>
           {/* Kategori filtresi */}
-          {allCategories.length > 0 && (
+          {labels.category && allCategories.length > 0 && (
             <div className="flex flex-wrap gap-1.5 items-center">
               <button
                 onClick={() => setFilterCategory('')}
@@ -387,24 +387,26 @@ export default function DentalServicesPage() {
                     {svc.name?.en && <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{svc.name.en}</p>}
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5">
-                    {svc.category && (
-                      <span
-                        className="text-[11px] px-2 py-0.5 rounded-md font-medium cursor-pointer hover:opacity-80 transition-opacity"
-                        style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}
-                        onClick={() => setFilterCategory(svc.category)}
-                        title="Bu kategoriye göre filtrele"
-                      >
-                        📂 {svc.category}
-                      </span>
-                    )}
-                    {svc.sku && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-md font-mono"
-                        style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
-                        # {svc.sku}
-                      </span>
-                    )}
-                  </div>
+                  {(labels.category || labels.sku) && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {labels.category && svc.category && (
+                        <span
+                          className="text-[11px] px-2 py-0.5 rounded-md font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                          style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}
+                          onClick={() => setFilterCategory(svc.category)}
+                          title="Bu kategoriye göre filtrele"
+                        >
+                          📂 {svc.category}
+                        </span>
+                      )}
+                      {labels.sku && svc.sku && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md font-mono"
+                          style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                          # {svc.sku}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {svc.description?.tr && (
                     <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--text-muted)' }}>{svc.description.tr}</p>
@@ -684,69 +686,75 @@ export default function DentalServicesPage() {
             </FormSection>
           )}
 
-          {/* ── Kategori & SKU ── */}
-          <FormSection title="Kategori ve Ürün Kodu">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                  Kategori
-                </label>
-                <input
-                  type="text"
-                  list="category-suggestions"
-                  value={form.category}
-                  onChange={(e) => set('category', e.target.value)}
-                  placeholder="T-Shirts, Hoodies..."
-                  className="w-full rounded-lg px-3.5 py-2.5 border outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
-                />
-                <datalist id="category-suggestions">
-                  {allCategories.map(cat => <option key={cat} value={cat} />)}
-                </datalist>
-                {form.category && (
-                  <p className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
-                    Bu kategori web sitesinde filtre olarak görünecek
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                  Ürün Kodu (SKU)
-                </label>
-                {editing ? (
-                  <div
-                    className="w-full rounded-lg px-3.5 py-2.5 border font-mono text-sm select-all"
-                    style={{ background: 'var(--bg-muted)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
-                  >
-                    {form.sku || '—'}
-                  </div>
-                ) : (
-                  <div
-                    className="w-full rounded-lg px-3.5 py-2.5 border text-sm italic"
-                    style={{ background: 'var(--bg-muted)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
-                  >
-                    Kayıt sonrası otomatik oluşturulur
+          {/* ── Kategori & SKU — sadece category veya sku bayrağı olan sektörlerde ── */}
+          {(labels.category || labels.sku) && (
+            <FormSection title={labels.category && labels.sku ? 'Kategori ve Ürün Kodu' : labels.category ? 'Kategori' : 'Ürün Kodu'}>
+              <div className={labels.category && labels.sku ? 'grid grid-cols-2 gap-4' : ''}>
+                {labels.category && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                      Kategori
+                    </label>
+                    <input
+                      type="text"
+                      list="category-suggestions"
+                      value={form.category}
+                      onChange={(e) => set('category', e.target.value)}
+                      placeholder={labels.categoryPlaceholder}
+                      className="w-full rounded-lg px-3.5 py-2.5 border outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                    />
+                    <datalist id="category-suggestions">
+                      {allCategories.map(cat => <option key={cat} value={cat} />)}
+                    </datalist>
+                    {form.category && (
+                      <p className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+                        Bu kategori web sitesinde filtre olarak görünecek
+                      </p>
+                    )}
                   </div>
                 )}
+                {labels.sku && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                      Ürün Kodu (SKU)
+                    </label>
+                    {editing ? (
+                      <div
+                        className="w-full rounded-lg px-3.5 py-2.5 border font-mono text-sm select-all"
+                        style={{ background: 'var(--bg-muted)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+                      >
+                        {form.sku || '—'}
+                      </div>
+                    ) : (
+                      <div
+                        className="w-full rounded-lg px-3.5 py-2.5 border text-sm italic"
+                        style={{ background: 'var(--bg-muted)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+                      >
+                        Kayıt sonrası otomatik oluşturulur
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-            {allCategories.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Mevcut kategoriler:</span>
-                {allCategories.map(cat => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => set('category', cat)}
-                    className={`text-[11px] px-2 py-0.5 rounded-full transition-colors ${form.category === cat ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
-                    style={form.category !== cat ? { background: 'var(--bg-muted)', color: 'var(--text-muted)' } : {}}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            )}
-          </FormSection>
+              {labels.category && allCategories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Mevcut kategoriler:</span>
+                  {allCategories.map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => set('category', cat)}
+                      className={`text-[11px] px-2 py-0.5 rounded-full transition-colors ${form.category === cat ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
+                      style={form.category !== cat ? { background: 'var(--bg-muted)', color: 'var(--text-muted)' } : {}}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </FormSection>
+          )}
 
           {/* ── Fiyat & Görünüm ── */}
           <FormSection title={labels.vehicle ? 'Günlük Fiyat ve Görünüm' : 'Fiyat ve Görünüm'}>
