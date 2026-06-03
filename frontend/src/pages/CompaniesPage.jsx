@@ -210,7 +210,7 @@ function UsersTab({ company }) {
             onClick={() => setGeneratedPwd(null)}
             className="mt-2 text-xs text-amber-700 dark:text-amber-400 underline"
           >
-            Anladım, kapat
+            Anladım, kapattım
           </button>
         </div>
       )}
