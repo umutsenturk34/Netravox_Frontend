@@ -5,6 +5,10 @@ import api from '../api/client';
 import { useToast } from '../context/ToastContext';
 import Button from '../components/ui/Button';
 import { Input, Select, ImageUrlInput } from '../components/ui/Input';
+import {
+  Building2, Phone, Mail, Server,
+  Share2, Plug, CreditCard, Layers, RefreshCw,
+} from 'lucide-react';
 
 const ALL_MODULES = [
   { id: 'pages',           label: 'Sayfalar' },
@@ -15,6 +19,8 @@ const ALL_MODULES = [
   { id: 'services',        label: 'Ürünler & Hizmetler' },
   { id: 'real-estate',     label: 'Emlak İlanları' },
   { id: 'reservations',    label: 'Rezervasyonlar' },
+  { id: 'orders',          label: 'Siparişler & Kuponlar' },
+  { id: 'customers',       label: 'Müşteriler' },
   { id: 'forms',           label: 'Form Gönderileri' },
   { id: 'notifications',   label: 'Bildirimler' },
   { id: 'blog',            label: 'Blog Yazıları' },
@@ -23,57 +29,121 @@ const ALL_MODULES = [
   { id: 'testimonials',    label: 'Referanslar' },
   { id: 'team',            label: 'Ekip' },
   { id: 'popups',          label: 'Popup & Duyurular' },
+  { id: 'meta-leads',      label: 'Meta Lead Ads' },
+  { id: 'analytics',       label: 'Analitik (GA4)' },
   { id: 'seo',             label: 'SEO' },
   { id: 'redirects',       label: 'Redirect' },
   { id: 'languages',       label: 'Diller' },
+  { id: 'cache',           label: 'Siteyi Güncelle (Cache)' },
   { id: 'settings',        label: 'Firma Ayarları' },
 ];
 
-const SECTORS = [
-  { value: 'restaurant', label: 'Restoran' },
-  { value: 'clinic', label: 'Klinik' },
-  { value: 'beauty', label: 'Güzellik Merkezi' },
-  { value: 'retail', label: 'Perakende' },
-  { value: 'other', label: 'Diğer' },
+const KURUMSAL_SECTORS = [
+  { value: 'restaurant',   label: 'Restoran / Kafe' },
+  { value: 'dental',       label: 'Diş Kliniği' },
+  { value: 'beauty',       label: 'Güzellik Salonu / Kuaför' },
+  { value: 'hotel',        label: 'Otel / Pansiyon' },
+  { value: 'clinic',       label: 'Klinik (Genel)' },
+  { value: 'law',          label: 'Hukuk Bürosu' },
+  { value: 'accounting',   label: 'Muhasebe / Mali Müşavirlik' },
+  { value: 'architecture', label: 'Mimarlık / İç Mimarlık' },
+  { value: 'agency',       label: 'Dijital / Kreatif Ajans' },
+  { value: 'education',    label: 'Eğitim / Kurs Merkezi' },
+  { value: 'fitness',      label: 'Spor Salonu / Gym' },
+  { value: 'real_estate',  label: 'Gayrimenkul' },
+  { value: 'service',      label: 'Genel Hizmet' },
+  { value: 'other',        label: 'Diğer' },
+];
+
+const ETICARET_SECTORS = [
+  { value: 'retail',            label: 'Genel Perakende / Giyim' },
+  { value: 'fashion',           label: 'Premium Moda' },
+  { value: 'food',              label: 'Gıda (Paketli Ürün)' },
+  { value: 'cosmetics',         label: 'Kozmetik / Güzellik Ürünleri' },
+  { value: 'sports',            label: 'Spor Malzemeleri' },
+  { value: 'home_living',       label: 'Ev & Yaşam' },
+  { value: 'jewelry',           label: 'Takı & Aksesuar' },
+  { value: 'rent',              label: 'Araç / Ekipman Kiralama' },
+  { value: 'restaurant_order',  label: 'Restoran (Online Sipariş)' },
 ];
 
 const TABS = [
-  { id: 'genel', label: 'Genel' },
-  { id: 'iletisim', label: 'İletişim' },
-  { id: 'icerik', label: 'İçerik' },
-  { id: 'gorsel', label: 'Görseller' },
-  { id: 'degerler', label: 'Değerler' },
-  { id: 'email', label: 'E-posta Şablonları' },
-  { id: 'smtp', label: 'SMTP Ayarları', agencyOnly: true },
-  { id: 'sosyal', label: 'Sosyal & Diğer' },
-  { id: 'entegrasyon', label: 'Entegrasyonlar' },
-  { id: 'odeme', label: 'Ödeme', moduleRequired: 'orders' },
-  { id: 'moduller', label: 'Modüller', agencyOnly: true },
+  { id: 'genel',        label: 'Genel',               Icon: Building2,  desc: 'Firma adı, sektör, domain, marka renkleri ve dil ayarları.' },
+  { id: 'iletisim',     label: 'İletişim',             Icon: Phone,      desc: 'Telefon, e-posta, adres, çalışma saatleri ve Google Maps bağlantısı.' },
+  { id: 'email',        label: 'E-posta Şablonları',   Icon: Mail,       desc: 'Rezervasyon onay / red maillerinin içeriği ve gönderici bilgileri.' },
+  { id: 'smtp',         label: 'SMTP Ayarları',        Icon: Server,     desc: 'Maillerin firmanın kendi SMTP sunucusundan gönderilmesi için bağlantı bilgileri.', agencyOnly: true },
+  { id: 'sosyal',       label: 'Sosyal & Diğer',       Icon: Share2,     desc: 'Instagram, Facebook, Twitter, YouTube ve TikTok bağlantıları.' },
+  { id: 'entegrasyon',  label: 'Entegrasyonlar',       Icon: Plug,       desc: 'Google Analytics 4, Meta Lead Ads ve diğer harici servis bağlantıları.' },
+  { id: 'odeme',        label: 'Ödeme',                Icon: CreditCard,    desc: 'İyzico API anahtarları, KDV oranı, para birimi ve fatura prefix ayarları.', moduleRequired: 'orders' },
+  { id: 'moduller',     label: 'Modüller',             Icon: Layers,        desc: 'Bu firmada görünecek panel modüllerini açıp kapatın.', agencyOnly: true },
 ];
 
 const defaultContent = {
+  // ana sayfa
   heroTitle: { tr: '', en: '' },
   heroImage: '',
-  homeImages: ['', '', '', ''],
-  testimonial: { quote: { tr: '', en: '' }, author: '', role: '' },
+  homeHeadline: '',
+  homeSubtext: '',
+  storyImage: '',
+  panoramaImage: '',
+  detailImages: ['', '', '', ''],
+  homeStats: [{ value: '', label: '' }, { value: '', label: '' }],
+  homeStoryCards: [
+    { image: '', title: '', description: '', eyebrow: '' },
+    { image: '', title: '', description: '', eyebrow: '' },
+    { image: '', title: '', description: '', eyebrow: '' },
+    { image: '', title: '', description: '', eyebrow: '' },
+  ],
+  experienceSectionEyebrow: '',
+  experienceSectionTitle: '',
+  experienceSectionDesc: '',
+  ctaTitle: '',
+  ctaSubtext: '',
+  ctaButton: '',
+  homeQuotes: [{ text: '', author: '', role: '' }],
+  // hakkimizda
   aboutHeroImage: '',
+  aboutSplitImage: '',
   aboutParagraph2: { tr: '', en: '' },
   aboutParagraph3: { tr: '', en: '' },
   aboutImages: ['', '', '', ''],
+  aboutQuote: { text: '', author: '' },
+  experienceCards: [
+    { img: '', title: '', desc: '' },
+    { img: '', title: '', desc: '' },
+    { img: '', title: '', desc: '' },
+  ],
   values: [
     { icon: '🌿', title: { tr: '', en: '' }, description: { tr: '', en: '' } },
     { icon: '🏔', title: { tr: '', en: '' }, description: { tr: '', en: '' } },
     { icon: '👨‍🍳', title: { tr: '', en: '' }, description: { tr: '', en: '' } },
   ],
+  // restoran
+  testimonial: { quote: { tr: '', en: '' }, author: '', role: '' },
   menuSubtitle: { tr: '', en: '' },
+  reservationHeroImage: '',
+  reservationHeroTitle: { tr: '', en: '' },
+  reservationHeroSubtitle: { tr: '', en: '' },
   reservationSubtitle: { tr: '', en: '' },
   reservationSlots: [],
+  gallery: [],
+  chefName: '',
+  chefPhoto: '',
+  chefQuote: { tr: '', en: '' },
+  // footer
+  footerLinksTitle: '',
+  footerContactTitle: '',
+  footerHoursTitle: '',
+  // iletisim
+  instagramPhotos: ['', '', '', ''],
+  // managed elsewhere — preserved on save
+  tables: [],
 };
 
 const DEFAULT_SMTP = { enabled: false, host: '', port: 587, secure: false, user: '', pass: '', fromName: '' };
 
 export default function CompanySettingsPage() {
-  const { activeTenantId, user } = useAuth();
+  const { activeTenantId, user, activeCompany } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState('genel');
@@ -81,23 +151,24 @@ export default function CompanySettingsPage() {
   const [testingMail, setTestingMail] = useState(false);
   const [payForm, setPayForm] = useState({ enabled: false, apiKey: '', secretKey: '', sandbox: true, taxRate: 20, currency: 'TRY', invoicePrefix: 'INV' });
   const [testingPay, setTestingPay] = useState(false);
-
+  const [revalidating, setRevalidating] = useState(false);
   const [form, setForm] = useState({
     name: '',
     domain: '',
     subdomain: '',
+    companyType: 'kurumsal',
     sector: 'restaurant',
     branding: { primaryColor: '#2563EB', secondaryColor: '#1E40AF', logoLight: '', logoDark: '', heroImage: '' },
     settings: { defaultLanguage: 'tr', supportedLanguages: ['tr'] },
     description: { tr: '', en: '' },
-    contact: { phone: '', whatsapp: '', email: '', address: '', city: '', country: 'Türkiye', mapUrl: '' },
+    contact: { phone: '', whatsapp: '', email: '', address: '', city: '', country: 'Türkiye', mapUrl: '', mapEmbedUrl: '' },
     workingHours: [
       { days: 'Pazartesi – Cuma', hours: '08:00 – 22:00' },
       { days: 'Cumartesi – Pazar', hours: '07:30 – 23:00' },
     ],
     socialLinks: { instagram: '', facebook: '', twitter: '', youtube: '', tiktok: '' },
-    integrations: {},
-    features: { aiContent: false, whatsapp: false },
+    integrations: { analyticsPropertyId: '', metaPageId: '', metaPageAccessToken: '', metaWebhookVerifyToken: '', metaDatasetId: '' },
+    features: { aiContent: false, whatsapp: false, tableCount: 0 },
     emailSettings: {
       senderName: '',
       fromEmail: '',
@@ -127,6 +198,7 @@ export default function CompanySettingsPage() {
         name: company.name || '',
         domain: company.domain || '',
         subdomain: company.subdomain || '',
+        companyType: company.companyType || 'kurumsal',
         sector: company.sector || 'restaurant',
         branding: {
           primaryColor: company.branding?.primaryColor || '#2563EB',
@@ -147,6 +219,7 @@ export default function CompanySettingsPage() {
           city: company.contact?.city || '',
           country: company.contact?.country || 'Türkiye',
           mapUrl: company.contact?.mapUrl || '',
+          mapEmbedUrl: company.contact?.mapEmbedUrl || '',
         },
         workingHours: company.workingHours?.length
           ? company.workingHours
@@ -158,10 +231,19 @@ export default function CompanySettingsPage() {
           youtube: company.socialLinks?.youtube || '',
           tiktok: company.socialLinks?.tiktok || '',
         },
-        integrations: {},
+        integrations: {
+          analyticsPropertyId:    company.integrations?.analyticsPropertyId    || '',
+          metaPageId:             company.integrations?.metaPageId             || '',
+          metaPageAccessToken:    company.integrations?.metaPageAccessToken     ? '••••••••' : '',
+          metaWebhookVerifyToken: company.integrations?.metaWebhookVerifyToken || '',
+          metaDatasetId:          company.integrations?.metaDatasetId          || '',
+          websiteUrl:             company.integrations?.websiteUrl             || '',
+          revalidateSecret:       company.integrations?.revalidateSecret        || '',
+        },
         features: {
-          aiContent: company.features?.aiContent ?? false,
-          whatsapp:  company.features?.whatsapp  ?? false,
+          aiContent:  company.features?.aiContent  ?? false,
+          whatsapp:   company.features?.whatsapp   ?? false,
+          tableCount: company.features?.tableCount ?? 0,
         },
         emailSettings: {
           senderName: company.emailSettings?.senderName || '',
@@ -177,18 +259,39 @@ export default function CompanySettingsPage() {
           rejectedMessage: company.emailSettings?.rejectedMessage || '',
         },
         content: {
-          heroTitle: { tr: c.heroTitle?.tr || '', en: c.heroTitle?.en || '' },
-          heroImage: c.heroImage || '',
-          homeImages: c.homeImages?.length === 4 ? c.homeImages : ['', '', '', ''],
-          testimonial: {
-            quote: { tr: c.testimonial?.quote?.tr || '', en: c.testimonial?.quote?.en || '' },
-            author: c.testimonial?.author || '',
-            role: c.testimonial?.role || '',
-          },
-          aboutHeroImage: c.aboutHeroImage || '',
+          // ana sayfa
+          heroTitle:    { tr: c.heroTitle?.tr  || '', en: c.heroTitle?.en  || '' },
+          heroImage:    c.heroImage    || '',
+          homeHeadline: c.homeHeadline || '',
+          homeSubtext:  c.homeSubtext  || '',
+          storyImage:   c.storyImage   || '',
+          panoramaImage:c.panoramaImage|| '',
+          detailImages: (() => { const a = c.detailImages?.length ? [...c.detailImages] : []; while (a.length < 4) a.push(''); return a.slice(0, 4); })(),
+          homeStats: c.homeStats?.length
+            ? c.homeStats
+            : defaultContent.homeStats,
+          homeStoryCards: c.homeStoryCards?.length
+            ? c.homeStoryCards.map((h) => ({ image: h.image||'', title: h.title||'', description: h.description||'', eyebrow: h.eyebrow||'' }))
+            : defaultContent.homeStoryCards,
+          experienceSectionEyebrow: c.experienceSectionEyebrow || '',
+          experienceSectionTitle:   c.experienceSectionTitle   || '',
+          experienceSectionDesc:    c.experienceSectionDesc    || '',
+          ctaTitle:   c.ctaTitle   || '',
+          ctaSubtext: c.ctaSubtext || '',
+          ctaButton:  c.ctaButton  || '',
+          homeQuotes: c.homeQuotes?.length
+            ? c.homeQuotes.map((q) => ({ text: q.text||'', author: q.author||'', role: q.role||'' }))
+            : defaultContent.homeQuotes,
+          // hakkimizda
+          aboutHeroImage:  c.aboutHeroImage  || '',
+          aboutSplitImage: c.aboutSplitImage || '',
           aboutParagraph2: { tr: c.aboutParagraph2?.tr || '', en: c.aboutParagraph2?.en || '' },
           aboutParagraph3: { tr: c.aboutParagraph3?.tr || '', en: c.aboutParagraph3?.en || '' },
-          aboutImages: c.aboutImages?.length === 4 ? c.aboutImages : ['', '', '', ''],
+          aboutImages: (() => { const a = c.aboutImages?.length ? [...c.aboutImages] : []; while (a.length < 4) a.push(''); return a.slice(0, 4); })(),
+          aboutQuote: { text: c.aboutQuote?.text || '', author: c.aboutQuote?.author || '' },
+          experienceCards: c.experienceCards?.length
+            ? c.experienceCards.map((e) => ({ img: e.img||'', title: e.title||'', desc: e.desc||'' }))
+            : defaultContent.experienceCards,
           values: c.values?.length
             ? c.values.map((v) => ({
                 icon: v.icon || '🌿',
@@ -196,9 +299,30 @@ export default function CompanySettingsPage() {
                 description: { tr: v.description?.tr || '', en: v.description?.en || '' },
               }))
             : defaultContent.values,
-          menuSubtitle: { tr: c.menuSubtitle?.tr || '', en: c.menuSubtitle?.en || '' },
-          reservationSubtitle: { tr: c.reservationSubtitle?.tr || '', en: c.reservationSubtitle?.en || '' },
+          // restoran
+          testimonial: {
+            quote: { tr: c.testimonial?.quote?.tr || '', en: c.testimonial?.quote?.en || '' },
+            author: c.testimonial?.author || '',
+            role:   c.testimonial?.role   || '',
+          },
+          menuSubtitle:            { tr: c.menuSubtitle?.tr            || '', en: c.menuSubtitle?.en            || '' },
+          reservationHeroImage:    c.reservationHeroImage    || '',
+          reservationHeroTitle:    { tr: c.reservationHeroTitle?.tr    || '', en: c.reservationHeroTitle?.en    || '' },
+          reservationHeroSubtitle: { tr: c.reservationHeroSubtitle?.tr || '', en: c.reservationHeroSubtitle?.en || '' },
+          reservationSubtitle:     { tr: c.reservationSubtitle?.tr     || '', en: c.reservationSubtitle?.en     || '' },
           reservationSlots: c.reservationSlots?.length ? c.reservationSlots : [],
+          gallery:   c.gallery   || [],
+          chefName:  c.chefName  || '',
+          chefPhoto: c.chefPhoto || '',
+          chefQuote: { tr: c.chefQuote?.tr || '', en: c.chefQuote?.en || '' },
+          // footer
+          footerLinksTitle:   c.footerLinksTitle   || '',
+          footerContactTitle: c.footerContactTitle || '',
+          footerHoursTitle:   c.footerHoursTitle   || '',
+          // iletisim
+          instagramPhotos: (() => { const a = c.instagramPhotos?.length ? [...c.instagramPhotos] : []; while (a.length < 4) a.push(''); return a.slice(0, 4); })(),
+          // preserved on save — not edited here
+          tables: c.tables || [],
         },
       });
     }
@@ -239,9 +363,14 @@ export default function CompanySettingsPage() {
     }
   }, [payData]);
 
-  useEffect(() => {
-    if (smtpData) setSmtpForm({ ...DEFAULT_SMTP, ...smtpData });
-  }, [smtpData]);
+  useEffect(() => { if (smtpData) setSmtpForm({ ...DEFAULT_SMTP, ...smtpData }); }, [smtpData]);
+
+
+  const integrationsMutation = useMutation({
+    mutationFn: (data) => api.patch(`/companies/${activeTenantId}/integrations`, data).then((r) => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['company'] }); toast.success('Entegrasyon ayarları kaydedildi'); },
+    onError: () => toast.error('Kaydedilemedi'),
+  });
 
   const featuresMutation = useMutation({
     mutationFn: (data) => api.patch(`/companies/${activeTenantId}/features`, data).then((r) => r.data),
@@ -287,6 +416,7 @@ export default function CompanySettingsPage() {
     onError: (err) => toast.error(err.response?.data?.message || 'Kaydedilemedi'),
   });
 
+
   async function testPayConnection() {
     setTestingPay(true);
     try {
@@ -296,6 +426,19 @@ export default function CompanySettingsPage() {
       toast.error(err.response?.data?.message || 'Bağlantı başarısız — API Key / Secret Key kontrol edin');
     } finally {
       setTestingPay(false);
+    }
+  }
+
+  async function revalidateWebsite() {
+    if (!activeCompany?._id) return;
+    setRevalidating(true);
+    try {
+      await api.post(`/companies/${activeCompany._id}/revalidate-website`);
+      toast.success('Web sitesi önbelleği temizlendi — değişiklikler yayına alındı');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Web sitesine ulaşılamadı — site URL ve secret kontrol edin');
+    } finally {
+      setRevalidating(false);
     }
   }
 
@@ -353,36 +496,59 @@ export default function CompanySettingsPage() {
         </Button>
       </div>
 
-      {/* Tab bar */}
-      <div className="mb-6 border-b" style={{ borderColor: 'var(--border)' }}>
-        <div className="flex gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {TABS.filter((t) =>
-            (!t.agencyOnly || user?.isSuperAdmin || user?.isAgencyUser) &&
-            (!t.moduleRequired || company?.modules?.includes(t.moduleRequired))
-          ).map((t) => (
+      {/* Tab bar — segmented control */}
+      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl mb-6 w-fit"
+        style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)' }}>
+        {TABS.filter((t) =>
+          (!t.agencyOnly || user?.isSuperAdmin || user?.isAgencyUser) &&
+          (!t.moduleRequired || company?.modules?.includes('*') || company?.modules?.includes(t.moduleRequired))
+        ).map((t) => {
+          const active = activeTab === t.id;
+          return (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className="px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap"
               style={{
-                borderColor: activeTab === t.id ? 'var(--primary)' : 'transparent',
-                color: activeTab === t.id ? 'var(--primary)' : 'var(--text-secondary)',
+                background: active ? 'var(--bg-surface)' : 'transparent',
+                color: active ? '#6366f1' : 'var(--text-secondary)',
+                boxShadow: active
+                  ? '0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(99,102,241,0.15)'
+                  : 'none',
               }}
             >
+              <t.Icon size={14} strokeWidth={active ? 2.5 : 1.8} />
               {t.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      <div className="space-y-6">
+      <div className="flex gap-8 items-start">
+        {/* ── Sol: form içeriği ── */}
+        <div className="flex-1 min-w-0 space-y-6">
         {/* ── GENEL ── */}
         {activeTab === 'genel' && (
           <>
             <Section title="Genel Bilgiler">
               <Input label="Firma Adı" value={form.name} onChange={(e) => set('name', e.target.value)} />
+              <Select
+                label="Firma Tipi"
+                value={form.companyType}
+                onChange={(e) => {
+                  const t = e.target.value;
+                  const defaultSector = t === 'eticaret' ? 'retail' : 'restaurant';
+                  set('companyType', t);
+                  set('sector', defaultSector);
+                }}
+              >
+                <option value="kurumsal">🏢 Kurumsal (tanıtım / hizmet sitesi)</option>
+                <option value="eticaret">🛒 E-Ticaret (ürün satışı / kiralama)</option>
+              </Select>
               <Select label="Sektör" value={form.sector} onChange={(e) => set('sector', e.target.value)}>
-                {SECTORS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                {(form.companyType === 'eticaret' ? ETICARET_SECTORS : KURUMSAL_SECTORS).map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
               </Select>
               <Input label="Domain (örn: firmaniz.com.tr)" value={form.domain} onChange={(e) => set('domain', e.target.value)} placeholder="firmaniz.com.tr" />
               <Input label="Subdomain (örn: firmaadi)" value={form.subdomain} onChange={(e) => set('subdomain', e.target.value)} placeholder="firmaadi" />
@@ -417,6 +583,23 @@ export default function CompanySettingsPage() {
             <Section title="Firma Tanıtım Metni">
               <Textarea label="Türkçe Açıklama" value={form.description.tr} onChange={(e) => set('description.tr', e.target.value)} placeholder="Firma hakkında kısa açıklama..." />
               <Textarea label="İngilizce Açıklama" value={form.description.en} onChange={(e) => set('description.en', e.target.value)} placeholder="Short description about the company..." />
+            </Section>
+
+            <Section title="Footer Bölüm Başlıkları">
+              <div className="rounded-lg p-3 text-xs mb-2" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                Boş bırakırsan varsayılan başlıklar kullanılır (Hızlı Bağlantılar / İletişim / Çalışma Saatleri).
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Input label="Bağlantılar Başlığı" value={form.content.footerLinksTitle}
+                  onChange={(e) => set('content.footerLinksTitle', e.target.value)}
+                  placeholder="Hızlı Bağlantılar" />
+                <Input label="İletişim Başlığı" value={form.content.footerContactTitle}
+                  onChange={(e) => set('content.footerContactTitle', e.target.value)}
+                  placeholder="İletişim" />
+                <Input label="Saatler Başlığı" value={form.content.footerHoursTitle}
+                  onChange={(e) => set('content.footerHoursTitle', e.target.value)}
+                  placeholder="Çalışma Saatleri" />
+              </div>
             </Section>
           </>
         )}
@@ -462,7 +645,8 @@ export default function CompanySettingsPage() {
                 <Input label="Şehir" value={form.contact.city} onChange={(e) => set('contact.city', e.target.value)} placeholder="Kocaeli" />
                 <Input label="Ülke" value={form.contact.country} onChange={(e) => set('contact.country', e.target.value)} placeholder="Türkiye" />
               </div>
-              <Input label="Google Maps Embed URL" value={form.contact.mapUrl} onChange={(e) => set('contact.mapUrl', e.target.value)} placeholder="https://maps.google.com/..." />
+              <Input label="Google Maps Bağlantısı" value={form.contact.mapUrl} onChange={(e) => set('contact.mapUrl', e.target.value)} placeholder="https://maps.google.com/..." />
+              <Input label="Google Maps Embed URL (iframe)" value={form.contact.mapEmbedUrl} onChange={(e) => set('contact.mapEmbedUrl', e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." hint="Haritayı web sitesine gömmek için Google Maps → Paylaş → Haritayı göm → src değeri" />
             </Section>
 
             <Section title="Çalışma Saatleri">
@@ -485,167 +669,11 @@ export default function CompanySettingsPage() {
               <button onClick={() => set('workingHours', [...form.workingHours, { days: '', hours: '' }])}
                 className="text-sm" style={{ color: 'var(--primary)' }}>+ Satır Ekle</button>
             </Section>
+
           </>
         )}
 
-        {/* ── İÇERİK ── */}
-        {activeTab === 'icerik' && (
-          <>
-            <Section title="Ana Sayfa — Hero Bölümü">
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ana sayfanın tam ekran üst bölümündeki başlık</p>
-              <Input label="Hero Başlık (Türkçe)" value={form.content.heroTitle.tr}
-                onChange={(e) => set('content.heroTitle.tr', e.target.value)}
-                placeholder="Profesyonel hizmet, güvenilir çözümler" />
-              <Input label="Hero Başlık (İngilizce)" value={form.content.heroTitle.en}
-                onChange={(e) => set('content.heroTitle.en', e.target.value)}
-                placeholder="Professional service, reliable solutions" />
-            </Section>
 
-            <Section title="Testimonial (Müşteri Yorumu)">
-              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Ana sayfa ve hakkımızda sayfasında görünen alıntı</p>
-              <Textarea label="Alıntı (Türkçe)" value={form.content.testimonial.quote.tr}
-                onChange={(e) => set('content.testimonial.quote.tr', e.target.value)}
-                placeholder="Hayatımda aldığım en iyi hizmetlerden biriydi..." />
-              <Textarea label="Alıntı (İngilizce)" value={form.content.testimonial.quote.en}
-                onChange={(e) => set('content.testimonial.quote.en', e.target.value)}
-                placeholder="One of the best services I've ever experienced..." />
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="Yazar Adı" value={form.content.testimonial.author}
-                  onChange={(e) => set('content.testimonial.author', e.target.value)}
-                  placeholder="Ayşe Yılmaz" />
-                <Input label="Yazar Rolü / Kaynağı" value={form.content.testimonial.role}
-                  onChange={(e) => set('content.testimonial.role', e.target.value)}
-                  placeholder="Müşteri · Google Yorumu" />
-              </div>
-            </Section>
-
-            <Section title="Hakkımızda — Ek Paragraflar">
-              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Firma tanıtım metninin altında gösterilir (Genel sekmesindeki açıklama 1. paragraf olarak kullanılır)</p>
-              <Textarea label="2. Paragraf (Türkçe)" value={form.content.aboutParagraph2.tr}
-                onChange={(e) => set('content.aboutParagraph2.tr', e.target.value)}
-                placeholder="Müşterilerimize en kaliteli hizmeti sunmak için sürekli gelişiyoruz..." rows={3} />
-              <Textarea label="2. Paragraf (İngilizce)" value={form.content.aboutParagraph2.en}
-                onChange={(e) => set('content.aboutParagraph2.en', e.target.value)}
-                placeholder="We continuously improve to offer the highest quality service to our customers..." rows={3} />
-              <Textarea label="3. Paragraf (Türkçe)" value={form.content.aboutParagraph3.tr}
-                onChange={(e) => set('content.aboutParagraph3.tr', e.target.value)}
-                placeholder="Deneyimli ekibimizle her zaman yanınızdayız..." rows={3} />
-              <Textarea label="3. Paragraf (İngilizce)" value={form.content.aboutParagraph3.en}
-                onChange={(e) => set('content.aboutParagraph3.en', e.target.value)}
-                placeholder="With our experienced team, we are always here for you..." rows={3} />
-            </Section>
-
-            {form.sector === 'restaurant' && (
-              <Section title="Menü Sayfası Alt Başlığı">
-                <Input label="Türkçe" value={form.content.menuSubtitle.tr}
-                  onChange={(e) => set('content.menuSubtitle.tr', e.target.value)}
-                  placeholder="Mevsimlik malzemelerle hazırlanan lezzetler." />
-                <Input label="İngilizce" value={form.content.menuSubtitle.en}
-                  onChange={(e) => set('content.menuSubtitle.en', e.target.value)} />
-              </Section>
-            )}
-
-            {['restaurant', 'clinic', 'beauty'].includes(form.sector) && (
-              <>
-                <Section title="Rezervasyon Alt Başlığı">
-                  <Input label="Türkçe" value={form.content.reservationSubtitle.tr}
-                    onChange={(e) => set('content.reservationSubtitle.tr', e.target.value)}
-                    placeholder="En az 24 saat öncesinden rezervasyon oluşturmanızı öneririz." />
-                  <Input label="İngilizce" value={form.content.reservationSubtitle.en}
-                    onChange={(e) => set('content.reservationSubtitle.en', e.target.value)} />
-                </Section>
-
-                <Section title="Rezervasyon Saat Dilimleri">
-                  <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Rezervasyon formunda gösterilecek saatler (HH:MM formatında, virgülle ayırın)</p>
-                  <Input
-                    label="Saatler"
-                    value={form.content.reservationSlots.join(', ')}
-                    onChange={(e) => set('content.reservationSlots', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
-                    placeholder="08:00, 09:00, 10:00, 12:00, 13:00, 19:00, 20:00, 21:00"
-                  />
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    Mevcut: {form.content.reservationSlots.length ? form.content.reservationSlots.join(' · ') : '(varsayılan kullanılır)'}
-                  </p>
-                </Section>
-              </>
-            )}
-          </>
-        )}
-
-        {/* ── GÖRSELLER ── */}
-        {activeTab === 'gorsel' && (
-          <>
-            <Section title="Hero Görseli">
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ana sayfanın tam ekran arka plan görseli</p>
-              <ImageUrlInput label="Hero Görsel URL" value={form.content.heroImage}
-                onChange={(e) => set('content.heroImage', e.target.value)} hint="1600×900px" />
-            </Section>
-
-            <Section title="Ana Sayfa — Hakkımızda Önizleme Görselleri">
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ana sayfada 2×2 grid halinde gösterilen 4 görsel</p>
-              {form.content.homeImages.map((url, i) => (
-                <ImageUrlInput key={i} label={`Görsel ${i + 1}`} value={url}
-                  onChange={(e) => setArrayItem('content.homeImages', i, e.target.value)} hint="600×800px" />
-              ))}
-            </Section>
-
-            <Section title="Hakkımızda Sayfası Görselleri">
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Hakkımızda hero görseli ve 2×2 grid görseller</p>
-              <ImageUrlInput label="Hero Görseli (Hakkımızda)" value={form.content.aboutHeroImage}
-                onChange={(e) => set('content.aboutHeroImage', e.target.value)} hint="1200×600px" />
-              <div className="space-y-3">
-                {form.content.aboutImages.map((url, i) => (
-                  <ImageUrlInput key={i} label={`Yan Görsel ${i + 1}`} value={url}
-                    onChange={(e) => setArrayItem('content.aboutImages', i, e.target.value)} hint="600×800px" />
-                ))}
-              </div>
-            </Section>
-          </>
-        )}
-
-        {/* ── DEĞERLER ── */}
-        {activeTab === 'degerler' && (
-          <Section title="Değerlerimiz Kartları">
-            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
-              Hakkımızda sayfasında gösterilen değer kartları (örn: Sürdürülebilirlik, Doğa ile Uyum, Usta Eller)
-            </p>
-            {form.content.values.map((v, i) => (
-              <div key={i} className="rounded-lg border p-4 space-y-3" style={{ borderColor: 'var(--border)' }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Kart {i + 1}</span>
-                  {form.content.values.length > 1 && (
-                    <button onClick={() => set('content.values', form.content.values.filter((_, j) => j !== i))}
-                      className="text-xs text-red-500 hover:text-red-700">Sil</button>
-                  )}
-                </div>
-                <Input label="İkon (emoji)" value={v.icon}
-                  onChange={(e) => { const u = [...form.content.values]; u[i] = { ...u[i], icon: e.target.value }; set('content.values', u); }}
-                  placeholder="🌿" />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input label="Başlık (TR)" value={v.title.tr}
-                    onChange={(e) => { const u = [...form.content.values]; u[i] = { ...u[i], title: { ...u[i].title, tr: e.target.value } }; set('content.values', u); }}
-                    placeholder="Sürdürülebilirlik" />
-                  <Input label="Başlık (EN)" value={v.title.en}
-                    onChange={(e) => { const u = [...form.content.values]; u[i] = { ...u[i], title: { ...u[i].title, en: e.target.value } }; set('content.values', u); }}
-                    placeholder="Sustainability" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Textarea label="Açıklama (TR)" rows={2} value={v.description.tr}
-                    onChange={(e) => { const u = [...form.content.values]; u[i] = { ...u[i], description: { ...u[i].description, tr: e.target.value } }; set('content.values', u); }}
-                    placeholder="Yerel üreticilerden gelen mevsimlik ürünler..." />
-                  <Textarea label="Açıklama (EN)" rows={2} value={v.description.en}
-                    onChange={(e) => { const u = [...form.content.values]; u[i] = { ...u[i], description: { ...u[i].description, en: e.target.value } }; set('content.values', u); }}
-                    placeholder="Seasonal products from local producers..." />
-                </div>
-              </div>
-            ))}
-            <button
-              onClick={() => set('content.values', [...form.content.values, { icon: '⭐', title: { tr: '', en: '' }, description: { tr: '', en: '' } }])}
-              className="text-sm" style={{ color: 'var(--primary)' }}>
-              + Kart Ekle
-            </button>
-          </Section>
-        )}
 
         {/* ── E-POSTA ŞABLONLARI ── */}
         {activeTab === 'email' && (
@@ -841,6 +869,36 @@ export default function CompanySettingsPage() {
           </>
         )}
 
+        {/* ── REZERVASYON ── */}
+        {activeTab === 'reservations' && (
+          <>
+            <Section title="Rezervasyon Hero Banner">
+              <ImageUrlInput
+                label="Banner Görseli"
+                value={form.content.reservationHeroImage}
+                onChange={(e) => set('content.reservationHeroImage', e.target.value)}
+                hint="1920×1080px — yatay, restoran atmosfer görseli"
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Başlık (TR)" value={form.content.reservationHeroTitle.tr}
+                  onChange={(e) => set('content.reservationHeroTitle.tr', e.target.value)}
+                  placeholder="Rezervasyon" />
+                <Input label="Başlık (EN)" value={form.content.reservationHeroTitle.en}
+                  onChange={(e) => set('content.reservationHeroTitle.en', e.target.value)}
+                  placeholder="Reservation" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Alt Metin (TR)" value={form.content.reservationHeroSubtitle.tr}
+                  onChange={(e) => set('content.reservationHeroSubtitle.tr', e.target.value)}
+                  placeholder="Doğanın içinde özel masanızı ayırtın..." />
+                <Input label="Alt Metin (EN)" value={form.content.reservationHeroSubtitle.en}
+                  onChange={(e) => set('content.reservationHeroSubtitle.en', e.target.value)}
+                  placeholder="Reserve your special table in nature..." />
+              </div>
+            </Section>
+          </>
+        )}
+
         {/* ── SOSYAL & DİĞER ── */}
         {activeTab === 'sosyal' && (
           <Section title="Sosyal Medya">
@@ -855,6 +913,160 @@ export default function CompanySettingsPage() {
         {/* ── ENTEGRASYONLAR ── */}
         {activeTab === 'entegrasyon' && (
           <>
+            {/* ── Google Analytics 4 + Meta Lead Ads ── */}
+            <Section title="Google Analytics 4">
+              <div className="rounded-lg p-4 text-sm mb-4" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
+                GA4 Mülk Kimliğini (Property ID) girin. GA4 Admin → Mülk Bilgileri sayfasında bulunur (örn: 323456789).
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>GA4 Property ID</label>
+                  <input
+                    type="text"
+                    value={form.integrations?.analyticsPropertyId || ''}
+                    onChange={(e) => set('integrations.analyticsPropertyId', e.target.value)}
+                    placeholder="323456789"
+                    className="w-full max-w-sm rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Meta Lead Ads">
+              <div className="rounded-lg p-4 text-sm mb-4" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
+                <p className="font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Nasıl kurulur?</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Meta for Developers → Uygulamanıza <strong>Leadgen</strong> webhook aboneliği ekleyin</li>
+                  <li>Callback URL: <code className="bg-black/10 px-1 rounded">https://ALAN_ADINIZ/api/meta-leads/webhook</code></li>
+                  <li>Verify Token olarak aşağıdaki değeri girin</li>
+                  <li>Page ID ve Page Access Token bilgilerini ekleyin</li>
+                </ol>
+              </div>
+              <div className="space-y-4 max-w-lg">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Facebook Sayfa ID (Page ID)</label>
+                  <input
+                    type="text"
+                    value={form.integrations?.metaPageId || ''}
+                    onChange={(e) => set('integrations.metaPageId', e.target.value)}
+                    placeholder="123456789012345"
+                    className="w-full rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Page Access Token</label>
+                  <input
+                    type="password"
+                    value={form.integrations?.metaPageAccessToken || ''}
+                    onChange={(e) => set('integrations.metaPageAccessToken', e.target.value)}
+                    placeholder="EAAxxxxx..."
+                    autoComplete="new-password"
+                    className="w-full rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Meta for Developers → Erişim Jetonları bölümünden alınır. Uzun ömürlü (Long-lived) token önerilir.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Webhook Doğrulama Jetonu (Verify Token)</label>
+                  <input
+                    type="text"
+                    value={form.integrations?.metaWebhookVerifyToken || ''}
+                    onChange={(e) => set('integrations.metaWebhookVerifyToken', e.target.value)}
+                    placeholder="Rastgele bir şifre belirleyin (örn: netlead_abc123)"
+                    className="w-full rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Meta webhook kurulumunda bu değeri Verify Token olarak girin.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    Dataset ID (Pixel ID) — Dönüşüm Optimizasyonu
+                  </label>
+                  <input
+                    type="text"
+                    value={form.integrations?.metaDatasetId || ''}
+                    onChange={(e) => set('integrations.metaDatasetId', e.target.value)}
+                    placeholder="1955285295096775"
+                    className="w-full rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    Meta Events Manager → Veri Setleri bölümünden alınır. Leadler "İletişim Kuruldu" yapıldığında Meta'ya dönüşüm sinyali gönderilir.
+                  </p>
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Web Sitesi Bağlantısı">
+              <div className="space-y-4 mb-5">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    Web Sitesi URL
+                  </label>
+                  <input
+                    type="text"
+                    value={form.integrations?.websiteUrl || ''}
+                    onChange={(e) => set('integrations.websiteUrl', e.target.value)}
+                    placeholder="https://www.gustokartepe.com"
+                    className="w-full rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    Lokal test için <code>http://localhost:3006</code>, production için canlı domain.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    Revalidate / Önizleme Secret
+                  </label>
+                  <input
+                    type="text"
+                    value={form.integrations?.revalidateSecret || ''}
+                    onChange={(e) => set('integrations.revalidateSecret', e.target.value)}
+                    placeholder="gusto-revalidate-2026"
+                    className="w-full rounded-lg px-3 py-2 text-sm border outline-none focus:ring-2 focus:ring-blue-500/20"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    Storefront'un <code>.env</code> dosyasındaki <code>REVALIDATE_SECRET</code> değeriyle aynı olmalı.
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-lg p-4 text-sm mb-5" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
+                Panel'den içerik güncellediğinizde "Siteyi Güncelle" butonuna basarak önbelleği temizleyin. Değişiklikler birkaç saniye içinde web sitesine yansır.
+              </div>
+              <button
+                onClick={revalidateWebsite}
+                disabled={revalidating}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
+                style={{ background: '#10b981', color: '#fff' }}
+              >
+                <RefreshCw size={14} className={revalidating ? 'animate-spin' : ''} />
+                {revalidating ? 'Güncelleniyor...' : 'Siteyi Güncelle'}
+              </button>
+            </Section>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => integrationsMutation.mutate({
+                  analyticsPropertyId:    form.integrations?.analyticsPropertyId    || '',
+                  metaPageId:             form.integrations?.metaPageId             || '',
+                  metaPageAccessToken:    form.integrations?.metaPageAccessToken    || '',
+                  metaWebhookVerifyToken: form.integrations?.metaWebhookVerifyToken || '',
+                  metaDatasetId:          form.integrations?.metaDatasetId          || '',
+                  websiteUrl:             form.integrations?.websiteUrl             || '',
+                  revalidateSecret:       form.integrations?.revalidateSecret       || '',
+                })}
+                disabled={integrationsMutation.isPending}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-60 text-white"
+                style={{ background: '#2563EB' }}
+              >
+                {integrationsMutation.isPending ? 'Kaydediliyor...' : 'Entegrasyon Ayarlarını Kaydet'}
+              </button>
+            </div>
+
             {user?.isSuperAdmin && (
               <Section title="🔒 Firma Özellikleri (Netravox Yönetimi)">
                 <div className="rounded-lg p-4 text-sm mb-4" style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
@@ -1015,7 +1227,11 @@ export default function CompanySettingsPage() {
         {activeTab === 'moduller' && (user?.isSuperAdmin || user?.isAgencyUser) && (
           <ModulesTab activeTenantId={activeTenantId} />
         )}
-      </div>
+        </div>{/* flex-1 form */}
+
+        {/* ── Sağ: bölüm bilgi kartı ── */}
+        <SectionInfo tabs={TABS} activeTab={activeTab} />
+      </div>{/* flex gap-8 */}
     </div>
   );
 }
@@ -1100,11 +1316,64 @@ function ModulesTab({ activeTenantId }) {
   );
 }
 
+function SectionInfo({ tabs, activeTab }) {
+  const tab = tabs.find((t) => t.id === activeTab);
+  if (!tab) return <div className="w-52 shrink-0" />;
+  const { Icon, label, desc } = tab;
+  return (
+    <div className="w-52 shrink-0 sticky top-6 space-y-3">
+      {/* Bölüm kartı */}
+      <div className="rounded-2xl overflow-hidden"
+        style={{ border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+        {/* Gradient header */}
+        <div className="px-5 pt-5 pb-4"
+          style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.06) 100%)' }}>
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center mb-3"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+            }}>
+            <Icon size={20} style={{ color: '#fff' }} strokeWidth={2} />
+          </div>
+          <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{label}</p>
+        </div>
+        <div className="px-5 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+        </div>
+      </div>
+
+      {/* Kaydet hatırlatma */}
+      <div className="rounded-2xl px-4 py-3.5 flex items-start gap-3"
+        style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)' }}>
+        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+          style={{ background: '#6366f1' }}>
+          <span style={{ color: '#fff', fontSize: 10, fontWeight: 700 }}>!</span>
+        </div>
+        <div>
+          <p className="text-xs font-semibold mb-0.5" style={{ color: '#6366f1' }}>Kaydetmeyi unutma</p>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            Değişiklikler sağ üstteki <strong>Kaydet</strong> butonuyla kaydedilir.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Section({ title, children }) {
   return (
-    <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
-      <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
-      {children}
+    <div className="rounded-2xl overflow-hidden"
+      style={{ border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+      <div className="px-5 py-4 border-b"
+        style={{
+          borderColor: 'var(--border)',
+          background: 'linear-gradient(to right, rgba(99,102,241,0.04), transparent)',
+        }}>
+        <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+      </div>
+      <div className="p-5 space-y-4">
+        {children}
+      </div>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import CompaniesPage from './pages/CompaniesPage';
 import UsersPage from './pages/UsersPage';
 import MenusPage from './pages/MenusPage';
 import CompanySettingsPage from './pages/CompanySettingsPage';
+import ECommerceSettingsPage from './pages/ECommerceSettingsPage';
 import FormsPage from './pages/FormsPage';
 import LanguagesPage from './pages/LanguagesPage';
 import RedirectsPage from './pages/RedirectsPage';
@@ -33,7 +34,16 @@ import PopupsPage from './pages/PopupsPage';
 import AuditLogPage from './pages/AuditLogPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import CouponsPage from './pages/CouponsPage';
 import SystemSettingsPage from './pages/SystemSettingsPage';
+import MetaLeadsPage from './pages/MetaLeadsPage';
+import CustomersPage from './pages/CustomersPage';
+import CategoriesPage from './pages/CategoriesPage';
+import ReviewsPage from './pages/ReviewsPage';
+import StockPage from './pages/StockPage';
+import GiftCardsPage from './pages/GiftCardsPage';
+import CachePage from './pages/CachePage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import CheckoutFailPage from './pages/CheckoutFailPage';
@@ -84,12 +94,17 @@ export default function App() {
           <Route path="menus" element={<MenusPage />} />
           <Route path="languages" element={<LanguagesPage />} />
           <Route path="settings" element={<CompanySettingsPage />} />
+          <Route path="ecommerce-settings" element={<ECommerceSettingsPage />} />
           <Route path="companies" element={<CompaniesPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="roles" element={<SuperAdminRoute><RolesPage /></SuperAdminRoute>} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="dental/services" element={<DentalServicesPage />} />
           <Route path="services" element={<DentalServicesPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="reviews" element={<ReviewsPage />} />
+          <Route path="stock" element={<StockPage />} />
+          <Route path="gift-cards" element={<GiftCardsPage />} />
           <Route path="real-estate/properties" element={<PropertiesManagePage />} />
           <Route path="blog" element={<BlogListPage />} />
           <Route path="blog/new" element={<BlogEditorPage />} />
@@ -102,7 +117,12 @@ export default function App() {
           <Route path="audit" element={<AuditLogPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="coupons" element={<CouponsPage />} />
           <Route path="system-settings" element={<SuperAdminRoute><SystemSettingsPage /></SuperAdminRoute>} />
+          <Route path="meta-leads" element={<MetaLeadsPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="cache" element={<CachePage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

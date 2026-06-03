@@ -1,11 +1,12 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { X } from 'lucide-react';
 
 const MediaPickerModal = lazy(() => import('./MediaPickerModal'));
 
-export function ImageUrlInput({ label, value, onChange, placeholder, hint, className = '' }) {
-  const [imgError, setImgError] = useState(false);
-  const [naturalSize, setNaturalSize] = useState(null);
+export function ImageUrlInput({ label, value, onChange, hint, className = '' }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [naturalSize, setNaturalSize] = useState(null);
+  const [imgError, setImgError] = useState(false);
 
   const isUrl = value && (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/'));
 
@@ -22,10 +23,21 @@ export function ImageUrlInput({ label, value, onChange, placeholder, hint, class
 
   function handleSelect(url) {
     onChange({ target: { value: url } });
+    setPickerOpen(false);
   }
+
+  function handleClear() {
+    onChange({ target: { value: '' } });
+  }
+
+  // Filename only for display
+  const displayName = value
+    ? value.split('/').pop().split('?')[0].slice(0, 50)
+    : '';
 
   return (
     <div className={className}>
+      {/* Label row */}
       <div className="flex items-center justify-between mb-1.5 gap-2 flex-wrap">
         {label && (
           <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
@@ -39,51 +51,56 @@ export function ImageUrlInput({ label, value, onChange, placeholder, hint, class
               Önerilen: {hint}
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => setPickerOpen(true)}
-            className="text-[11px] px-2 py-0.5 rounded font-medium border transition-colors hover:opacity-80"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'var(--bg-muted)' }}
-          >
-            📁 Medyadan Seç
-          </button>
         </div>
       </div>
 
+      {/* Preview — shown when image loaded */}
       {isUrl && !imgError && (
         <div className="mb-2 relative overflow-hidden rounded-lg border group"
           style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
           <img
             src={value}
             alt="önizleme"
-            className="w-full h-28 object-cover"
+            className="w-full h-32 object-cover"
             onLoad={handleLoad}
             onError={() => setImgError(true)}
           />
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.55))' }}>
-            <span className="text-white text-[10px] font-medium">Önizleme</span>
-            {naturalSize && <span className="text-white/80 text-[10px]">{naturalSize}</span>}
+            style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.6))' }}>
+            <span className="text-white text-[10px] font-medium truncate max-w-[70%]">{displayName}</span>
+            {naturalSize && <span className="text-white/70 text-[10px] shrink-0">{naturalSize}</span>}
           </div>
         </div>
       )}
 
-      <input
-        type="text"
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder || 'https://... veya medyadan seç'}
-        className="w-full rounded-lg px-3.5 py-2.5 border outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-        style={{
-          background: 'var(--bg-base)',
-          borderColor: 'var(--border)',
-          color: 'var(--text-primary)',
-          fontSize: '16px',
-        }}
-      />
+      {/* Action buttons row */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="flex-1 flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors hover:opacity-80"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'var(--bg-muted)' }}
+        >
+          <span>📁</span>
+          {value ? 'Görseli Değiştir' : 'Medyadan Seç'}
+        </button>
 
+        {value && (
+          <button
+            type="button"
+            onClick={handleClear}
+            title="Görseli kaldır"
+            className="flex items-center justify-center rounded-lg border px-3 transition-colors hover:bg-red-50 hover:border-red-300"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <X size={15} className="text-red-400" />
+          </button>
+        )}
+      </div>
+
+      {/* Error state */}
       {isUrl && imgError && (
-        <p className="mt-1 text-xs text-amber-500">⚠ Görsel yüklenemedi — URL'yi kontrol edin</p>
+        <p className="mt-1 text-xs text-amber-500">⚠ Görsel yüklenemedi — lütfen medyadan yeniden seçin</p>
       )}
 
       {pickerOpen && (

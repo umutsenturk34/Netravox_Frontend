@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Input, Select } from '../components/ui/Input';
 import { TableSkeleton } from '../components/ui/Skeleton';
-import { Building2, ChevronRight, Users, Package, Plus, Copy, Check, ShieldCheck, CreditCard } from 'lucide-react';
+import { Building2, ChevronRight, Users, Package, Plus, Copy, Check, ShieldCheck, CreditCard, FileText, Banknote, Truck } from 'lucide-react';
 
 const ALL_MODULES = [
   { id: 'pages',           label: 'Sayfalar' },
@@ -34,13 +34,33 @@ const ALL_MODULES = [
   { id: 'orders',          label: 'Siparişler & Ödemeler' },
 ];
 
-const SECTORS = [
-  { value: 'restaurant', label: 'Restoran' },
-  { value: 'dental', label: 'Diş Kliniği' },
-  { value: 'hotel', label: 'Otel' },
-  { value: 'beauty', label: 'Güzellik Merkezi' },
-  { value: 'real_estate', label: 'Emlak' },
-  { value: 'other', label: 'Diğer' },
+const KURUMSAL_SECTORS = [
+  { value: 'restaurant',   label: 'Restoran / Kafe' },
+  { value: 'dental',       label: 'Diş Kliniği' },
+  { value: 'beauty',       label: 'Güzellik Salonu' },
+  { value: 'hotel',        label: 'Otel / Pansiyon' },
+  { value: 'clinic',       label: 'Klinik (Genel)' },
+  { value: 'law',          label: 'Hukuk Bürosu' },
+  { value: 'accounting',   label: 'Muhasebe' },
+  { value: 'architecture', label: 'Mimarlık' },
+  { value: 'agency',       label: 'Dijital Ajans' },
+  { value: 'education',    label: 'Eğitim / Kurs' },
+  { value: 'fitness',      label: 'Spor Salonu' },
+  { value: 'real_estate',  label: 'Gayrimenkul' },
+  { value: 'service',      label: 'Genel Hizmet' },
+  { value: 'other',        label: 'Diğer' },
+];
+
+const ETICARET_SECTORS = [
+  { value: 'retail',           label: 'Genel Perakende / Giyim' },
+  { value: 'fashion',          label: 'Premium Moda' },
+  { value: 'food',             label: 'Gıda (Paketli Ürün)' },
+  { value: 'cosmetics',        label: 'Kozmetik' },
+  { value: 'sports',           label: 'Spor Malzemeleri' },
+  { value: 'home_living',      label: 'Ev & Yaşam' },
+  { value: 'jewelry',          label: 'Takı & Aksesuar' },
+  { value: 'rent',             label: 'Araç / Ekipman Kiralama' },
+  { value: 'restaurant_order', label: 'Restoran (Online Sipariş)' },
 ];
 
 const toSlug = (str) =>
@@ -288,7 +308,7 @@ export default function CompaniesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [managingCompany, setManagingCompany] = useState(null);
   const [manageTab, setManageTab] = useState('modules');
-  const [form, setForm] = useState({ name: '', slug: '', sector: 'other' });
+  const [form, setForm] = useState({ name: '', slug: '', companyType: 'kurumsal', sector: 'other' });
 
   const hasAdminModule = (mod) =>
     user?.isSuperAdmin ||
@@ -314,7 +334,7 @@ export default function CompaniesPage() {
       qc.invalidateQueries({ queryKey: ['companies'] });
       toast.success('Firma oluşturuldu');
       setShowCreateModal(false);
-      setForm({ name: '', slug: '', sector: 'other' });
+      setForm({ name: '', slug: '', companyType: 'kurumsal', sector: 'other' });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Oluşturulamadı'),
   });
@@ -376,6 +396,9 @@ export default function CompaniesPage() {
                       <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{c.slug}</span>
                       <span className="text-xs" style={{ color: 'var(--text-muted)' }}>·</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${ml.color}`}>{ml.text}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${c.companyType === 'eticaret' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400'}`}>
+                        {c.companyType === 'eticaret' ? '🛒 E-Ticaret' : '🏢 Kurumsal'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -439,8 +462,21 @@ export default function CompaniesPage() {
             onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
             placeholder="taku-streetwear"
           />
+          <Select
+            label="Firma Tipi"
+            value={form.companyType}
+            onChange={(e) => {
+              const t = e.target.value;
+              setForm((p) => ({ ...p, companyType: t, sector: t === 'eticaret' ? 'retail' : 'other' }));
+            }}
+          >
+            <option value="kurumsal">🏢 Kurumsal</option>
+            <option value="eticaret">🛒 E-Ticaret</option>
+          </Select>
           <Select label="Sektör" value={form.sector} onChange={(e) => setForm((p) => ({ ...p, sector: e.target.value }))}>
-            {SECTORS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            {(form.companyType === 'eticaret' ? ETICARET_SECTORS : KURUMSAL_SECTORS).map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
           </Select>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
             Firma oluşturulduktan sonra modüller ve kullanıcılar Yönet panelinden ayarlanır.
@@ -462,7 +498,11 @@ export default function CompaniesPage() {
                 { id: 'modules',  label: 'Modüller',    icon: Package,    always: true },
                 { id: 'users',    label: 'Kullanıcılar',icon: Users,      adminMod: 'admin:users' },
                 { id: 'security', label: 'Güvenlik',    icon: ShieldCheck,adminMod: 'admin:security' },
-                { id: 'payment',  label: 'Ödeme',       icon: CreditCard, adminMod: 'admin:companies' },
+                { id: 'payment',   label: 'İyzico',      icon: CreditCard, adminMod: 'admin:companies' },
+                { id: 'paytr',    label: 'PayTR',       icon: CreditCard, adminMod: 'admin:companies' },
+                { id: 'bank',     label: 'Havale/EFT',  icon: Banknote,   adminMod: 'admin:companies' },
+                { id: 'cod',      label: 'Kapıda',      icon: Truck,      adminMod: 'admin:companies' },
+                { id: 'parasut',  label: 'e-Fatura',    icon: FileText,   adminMod: 'admin:companies' },
               ].filter((t) => t.always || hasAdminModule(t.adminMod)).map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -489,6 +529,18 @@ export default function CompaniesPage() {
             )}
             {manageTab === 'payment' && (
               <PaymentTab company={managingCompany} />
+            )}
+            {manageTab === 'paytr' && (
+              <PaytrTab company={managingCompany} />
+            )}
+            {manageTab === 'bank' && (
+              <BankTransferTab company={managingCompany} />
+            )}
+            {manageTab === 'cod' && (
+              <CashOnDeliveryTab company={managingCompany} />
+            )}
+            {manageTab === 'parasut' && (
+              <ParasutTab company={managingCompany} />
             )}
           </div>
         </Modal>
@@ -581,35 +633,57 @@ function PaymentTab({ company }) {
     apiKey:        '',
     secretKey:     '',
     sandbox:       company.paymentSettings?.iyzico?.sandbox   ?? true,
+    testMode:      company.paymentSettings?.iyzico?.testMode  ?? false,
     taxRate:       company.paymentSettings?.taxRate           ?? 20,
     currency:      company.paymentSettings?.currency          || 'TRY',
     invoicePrefix: company.paymentSettings?.invoicePrefix     || 'INV',
   });
-  const [testing, setTesting] = useState(false);
+  const [testing, setTesting]         = useState(false);
+  const [editApiKey, setEditApiKey]   = useState(false);
+  const [editSecretKey, setEditSecretKey] = useState(false);
+  const [hasApiKey, setHasApiKey]     = useState(false);
+  const [hasSecretKey, setHasSecretKey] = useState(false);
 
-  useQuery({
+  const { data: paymentData } = useQuery({
     queryKey: ['company-payment', company._id],
     queryFn: () => api.get(`/companies/${company._id}/payment`).then((r) => r.data),
-    onSuccess: (d) => setForm((p) => ({
-      ...p,
-      enabled:       d.iyzico?.enabled   ?? false,
-      apiKey:        d.iyzico?.apiKey    || '',
-      secretKey:     d.iyzico?.secretKey || '',
-      sandbox:       d.iyzico?.sandbox   ?? true,
-      taxRate:       d.taxRate           ?? 20,
-      currency:      d.currency          || 'TRY',
-      invoicePrefix: d.invoicePrefix     || 'INV',
-    })),
   });
 
-  const errs     = paymentErrors(form);
+  useEffect(() => {
+    if (!paymentData) return;
+    const apiKey    = paymentData.iyzico?.apiKey    || '';
+    const secretKey = paymentData.iyzico?.secretKey || '';
+    setHasApiKey(!!apiKey);
+    setHasSecretKey(!!secretKey);
+    setForm((p) => ({
+      ...p,
+      enabled:       paymentData.iyzico?.enabled   ?? false,
+      apiKey,
+      secretKey,
+      sandbox:       paymentData.iyzico?.sandbox   ?? true,
+      testMode:      paymentData.iyzico?.testMode  ?? false,
+      taxRate:       paymentData.taxRate            ?? 20,
+      currency:      paymentData.currency           || 'TRY',
+      invoicePrefix: paymentData.invoicePrefix      || 'INV',
+    }));
+  }, [paymentData]);
+
+  const errs      = paymentErrors(form);
   const hasErrors = Object.values(errs).some(Boolean);
-  const canSave  = !hasErrors && (!form.enabled || (form.apiKey && form.secretKey));
-  const canTest  = !errs.apiKey && form.apiKey && form.apiKey !== MASKED;
+  const canSave   = !hasErrors && (!form.enabled || (
+    (hasApiKey || form.apiKey) && (hasSecretKey || form.secretKey)
+  ));
+  const canTest   = !errs.apiKey && form.apiKey && form.apiKey !== MASKED;
 
   const save = useMutation({
     mutationFn: () => api.patch(`/companies/${company._id}/payment`, {
-      iyzico: { enabled: form.enabled, apiKey: form.apiKey, secretKey: form.secretKey, sandbox: form.sandbox },
+      iyzico: {
+        enabled:  form.enabled,
+        apiKey:   (hasApiKey && !editApiKey) ? MASKED : form.apiKey,
+        secretKey:(hasSecretKey && !editSecretKey) ? MASKED : form.secretKey,
+        sandbox:  form.sandbox,
+        testMode: form.testMode,
+      },
       taxRate: Number(form.taxRate),
       currency: form.currency,
       invoicePrefix: form.invoicePrefix,
@@ -654,35 +728,107 @@ function PaymentTab({ company }) {
 
       {/* API Credentials */}
       <div className="space-y-3">
-        <Input
-          label="İyzico API Key"
-          value={form.apiKey}
-          onChange={(e) => set('apiKey', e.target.value.trim())}
-          placeholder="sandbox-AbCdEfGhIjKlMnOpQrSt"
-          error={errs.apiKey}
-        />
-        <Input
-          label="İyzico Secret Key"
-          type="password"
-          value={form.secretKey}
-          onChange={(e) => set('secretKey', e.target.value.trim())}
-          placeholder="••••••••"
-          error={errs.secretKey}
-        />
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+            İyzico API Key
+          </label>
+          <div className="flex gap-2">
+            <input
+              className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-colors"
+              style={{
+                borderColor: errs.apiKey ? '#ef4444' : 'var(--border)',
+                background: (hasApiKey && !editApiKey) ? 'var(--bg-muted)' : 'var(--bg-surface)',
+                color: 'var(--text-primary)',
+                opacity: (hasApiKey && !editApiKey) ? 0.7 : 1,
+              }}
+              value={editApiKey ? form.apiKey : (hasApiKey ? form.apiKey : form.apiKey)}
+              onChange={(e) => set('apiKey', e.target.value.trim())}
+              placeholder="sandbox-AbCdEfGhIjKlMnOpQrSt"
+              disabled={hasApiKey && !editApiKey}
+            />
+            {hasApiKey && (
+              <button
+                type="button"
+                onClick={() => { setEditApiKey(!editApiKey); if (editApiKey) set('apiKey', ''); }}
+                className="px-3 py-2 rounded-lg text-xs font-semibold border transition-colors shrink-0"
+                style={{
+                  borderColor: editApiKey ? '#ef4444' : 'var(--border)',
+                  color: editApiKey ? '#ef4444' : 'var(--text-secondary)',
+                  background: 'var(--bg-surface)',
+                }}
+              >
+                {editApiKey ? 'İptal' : 'Değiştir'}
+              </button>
+            )}
+          </div>
+          {errs.apiKey && <p className="text-xs mt-1 text-red-500">{errs.apiKey}</p>}
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+            İyzico Secret Key
+          </label>
+          <div className="flex gap-2">
+            <input
+              className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-colors"
+              style={{
+                borderColor: errs.secretKey ? '#ef4444' : 'var(--border)',
+                background: (hasSecretKey && !editSecretKey) ? 'var(--bg-muted)' : 'var(--bg-surface)',
+                color: 'var(--text-primary)',
+                opacity: (hasSecretKey && !editSecretKey) ? 0.7 : 1,
+              }}
+              type="password"
+              value={editSecretKey ? form.secretKey : (hasSecretKey ? form.secretKey : form.secretKey)}
+              onChange={(e) => set('secretKey', e.target.value.trim())}
+              placeholder="••••••••"
+              disabled={hasSecretKey && !editSecretKey}
+            />
+            {hasSecretKey && (
+              <button
+                type="button"
+                onClick={() => { setEditSecretKey(!editSecretKey); if (editSecretKey) set('secretKey', ''); }}
+                className="px-3 py-2 rounded-lg text-xs font-semibold border transition-colors shrink-0"
+                style={{
+                  borderColor: editSecretKey ? '#ef4444' : 'var(--border)',
+                  color: editSecretKey ? '#ef4444' : 'var(--text-secondary)',
+                  background: 'var(--bg-surface)',
+                }}
+              >
+                {editSecretKey ? 'İptal' : 'Değiştir'}
+              </button>
+            )}
+          </div>
+          {errs.secretKey && <p className="text-xs mt-1 text-red-500">{errs.secretKey}</p>}
+        </div>
       </div>
 
-      {/* Sandbox toggle */}
+      {/* Sandbox API toggle */}
       <div className="flex items-center justify-between p-3 rounded-xl border"
         style={{ borderColor: 'var(--border)' }}>
         <div>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Test Modu (Sandbox)</p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Kapalıysa gerçek ödemeler alınır — canlıya geçince kapatın</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Sandbox API</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Açık: sandbox.iyzipay.com — test credentials kullanılır. Kapalı: canlı üretim API.</p>
         </div>
         <button type="button" onClick={() => set('sandbox', !form.sandbox)}
           className="relative shrink-0 w-11 h-6 rounded-full transition-colors"
-          style={{ background: form.sandbox ? '#f59e0b' : '#22c55e' }}>
+          style={{ background: form.sandbox ? '#6366f1' : 'var(--border)' }}>
           <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
             style={{ transform: form.sandbox ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      {/* Test Mode toggle */}
+      <div className="flex items-center justify-between p-3 rounded-xl border"
+        style={{ borderColor: 'var(--border)' }}>
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Simülasyon Modu</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Açık: iyzico'ya bağlanmadan sahte form gösterilir (geliştirme). Kapalı: gerçek iyzico formu.</p>
+        </div>
+        <button type="button" onClick={() => set('testMode', !form.testMode)}
+          className="relative shrink-0 w-11 h-6 rounded-full transition-colors"
+          style={{ background: form.testMode ? '#f59e0b' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            style={{ transform: form.testMode ? 'translateX(20px)' : 'translateX(0)' }} />
         </button>
       </div>
 
@@ -722,6 +868,347 @@ function PaymentTab({ company }) {
           {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
         </Button>
       </div>
+    </div>
+  );
+}
+
+const MASKED_P = '••••••••';
+
+function ParasutTab({ company }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [form, setForm] = useState({
+    enabled:      false,
+    companyId:    '',
+    clientId:     '',
+    clientSecret: '',
+    username:     '',
+    password:     '',
+  });
+  const [editSecret, setEditSecret] = useState(false);
+  const [editPass,   setEditPass]   = useState(false);
+  const [hasSecret,  setHasSecret]  = useState(false);
+  const [hasPass,    setHasPass]    = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ['company-parasut', company._id],
+    queryFn:  () => api.get(`/companies/${company._id}/parasut`).then((r) => r.data),
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    setHasSecret(!!data.clientSecret);
+    setHasPass(!!data.password);
+    setForm({
+      enabled:      data.enabled      ?? false,
+      companyId:    data.companyId    || '',
+      clientId:     data.clientId     || '',
+      clientSecret: data.clientSecret || '',
+      username:     data.username     || '',
+      password:     data.password     || '',
+    });
+  }, [data]);
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const save = useMutation({
+    mutationFn: () => api.patch(`/companies/${company._id}/parasut`, {
+      enabled:      form.enabled,
+      companyId:    form.companyId  || null,
+      clientId:     form.clientId   || null,
+      username:     form.username   || null,
+      clientSecret: (hasSecret && !editSecret) ? MASKED_P : form.clientSecret,
+      password:     (hasPass   && !editPass)   ? MASKED_P : form.password,
+    }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['company-parasut', company._id] });
+      toast.success('Paraşüt ayarları kaydedildi');
+    },
+    onError: (e) => toast.error(e.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  return (
+    <div className="space-y-5">
+      <div className="p-3 rounded-xl border text-xs" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+        Paraşüt entegrasyonu aktifken, iyzico üzerinden ödeme alınan her sipariş için otomatik olarak <strong>e-Arşiv Fatura</strong> oluşturulur.
+        Paraşüt hesabınızdan <strong>API Uygulaması</strong> oluşturup aşağıdaki alanları doldurun.
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-xl border"
+        style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Otomatik e-Arşiv Fatura</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Ödeme tamamlandığında Paraşüt üzerinden fatura oluşturulur.</p>
+        </div>
+        <button type="button" onClick={() => set('enabled', !form.enabled)}
+          className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4"
+          style={{ background: form.enabled ? '#6366f1' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            style={{ transform: form.enabled ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <Input label="Paraşüt Firma ID" value={form.companyId}
+          onChange={(e) => set('companyId', e.target.value.trim())} placeholder="123456" />
+        <Input label="Client ID (Uygulama Kimliği)" value={form.clientId}
+          onChange={(e) => set('clientId', e.target.value.trim())} placeholder="parasut-uygulama-id" />
+
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Client Secret</label>
+          <div className="flex gap-2">
+            <input type="password"
+              className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none"
+              style={{ borderColor: 'var(--border)', background: (hasSecret && !editSecret) ? 'var(--bg-muted)' : 'var(--bg-surface)', color: 'var(--text-primary)', opacity: (hasSecret && !editSecret) ? 0.7 : 1 }}
+              value={form.clientSecret} onChange={(e) => set('clientSecret', e.target.value)}
+              placeholder="••••••••" disabled={hasSecret && !editSecret} />
+            {hasSecret && (
+              <button type="button" onClick={() => { setEditSecret(!editSecret); if (editSecret) set('clientSecret', ''); }}
+                className="px-3 py-2 rounded-lg text-xs font-semibold border shrink-0"
+                style={{ borderColor: editSecret ? '#ef4444' : 'var(--border)', color: editSecret ? '#ef4444' : 'var(--text-secondary)', background: 'var(--bg-surface)' }}>
+                {editSecret ? 'İptal' : 'Değiştir'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <Input label="Paraşüt Kullanıcı Adı (E-posta)" value={form.username}
+          onChange={(e) => set('username', e.target.value.trim())} placeholder="siz@email.com" />
+
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Paraşüt Şifresi</label>
+          <div className="flex gap-2">
+            <input type="password"
+              className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none"
+              style={{ borderColor: 'var(--border)', background: (hasPass && !editPass) ? 'var(--bg-muted)' : 'var(--bg-surface)', color: 'var(--text-primary)', opacity: (hasPass && !editPass) ? 0.7 : 1 }}
+              value={form.password} onChange={(e) => set('password', e.target.value)}
+              placeholder="••••••••" disabled={hasPass && !editPass} />
+            {hasPass && (
+              <button type="button" onClick={() => { setEditPass(!editPass); if (editPass) set('password', ''); }}
+                className="px-3 py-2 rounded-lg text-xs font-semibold border shrink-0"
+                style={{ borderColor: editPass ? '#ef4444' : 'var(--border)', color: editPass ? '#ef4444' : 'var(--text-secondary)', background: 'var(--bg-surface)' }}>
+                {editPass ? 'İptal' : 'Değiştir'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <Button onClick={() => save.mutate()} disabled={save.isPending}>
+        {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+      </Button>
+    </div>
+  );
+}
+
+// ── PayTR ─────────────────────────────────────────────────────────────────────
+const MK = '••••••••';
+
+function PaytrTab({ company }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [form, setForm] = useState({ enabled: false, merchantId: '', merchantKey: '', merchantSalt: '', testMode: true });
+  const [editKey,  setEditKey]  = useState(false);
+  const [editSalt, setEditSalt] = useState(false);
+  const [hasKey,   setHasKey]   = useState(false);
+  const [hasSalt,  setHasSalt]  = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ['company-paytr', company._id],
+    queryFn: () => api.get(`/companies/${company._id}/paytr`).then((r) => r.data),
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    setHasKey(!!data.merchantKey); setHasSalt(!!data.merchantSalt);
+    setForm({ enabled: data.enabled ?? false, merchantId: data.merchantId || '', merchantKey: data.merchantKey || '', merchantSalt: data.merchantSalt || '', testMode: data.testMode ?? true });
+  }, [data]);
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const save = useMutation({
+    mutationFn: () => api.patch(`/companies/${company._id}/paytr`, {
+      enabled: form.enabled, merchantId: form.merchantId, testMode: form.testMode,
+      merchantKey:  (hasKey  && !editKey)  ? MK : form.merchantKey,
+      merchantSalt: (hasSalt && !editSalt) ? MK : form.merchantSalt,
+    }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['company-paytr', company._id] }); toast.success('PayTR ayarları kaydedildi'); },
+    onError:   (e) => toast.error(e.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  return (
+    <div className="space-y-5">
+      <div className="p-3 rounded-xl border text-xs" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+        PayTR entegrasyonu aktifken müşteriler iFrame ödeme formuyla ödeme yapabilir. Bilgileri PayTR Merchant panelinden alabilirsiniz.
+      </div>
+
+      {/* Etkinleştir */}
+      <div className="flex items-center justify-between p-4 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>PayTR Ödeme</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktif edilince checkout'ta PayTR seçeneği görünür.</p>
+        </div>
+        <button type="button" onClick={() => set('enabled', !form.enabled)} className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4" style={{ background: form.enabled ? '#6366f1' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: form.enabled ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      {/* Test modu */}
+      <div className="flex items-center justify-between p-3 rounded-xl border" style={{ borderColor: 'var(--border)' }}>
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Test Modu</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Gerçek para çekilmez; PayTR test ortamı kullanılır.</p>
+        </div>
+        <button type="button" onClick={() => set('testMode', !form.testMode)} className="relative shrink-0 w-11 h-6 rounded-full transition-colors" style={{ background: form.testMode ? '#f59e0b' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: form.testMode ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <Input label="Merchant ID" value={form.merchantId} onChange={(e) => set('merchantId', e.target.value.trim())} placeholder="123456" />
+
+        {/* Merchant Key */}
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Merchant Key</label>
+          <div className="flex gap-2">
+            <input type="password" className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none"
+              style={{ borderColor: 'var(--border)', background: (hasKey && !editKey) ? 'var(--bg-muted)' : 'var(--bg-surface)', color: 'var(--text-primary)', opacity: (hasKey && !editKey) ? 0.7 : 1 }}
+              value={form.merchantKey} onChange={(e) => set('merchantKey', e.target.value)} placeholder="••••••••" disabled={hasKey && !editKey} />
+            {hasKey && <button type="button" onClick={() => { setEditKey(!editKey); if (editKey) set('merchantKey', ''); }}
+              className="px-3 py-2 rounded-lg text-xs font-semibold border shrink-0"
+              style={{ borderColor: editKey ? '#ef4444' : 'var(--border)', color: editKey ? '#ef4444' : 'var(--text-secondary)', background: 'var(--bg-surface)' }}>
+              {editKey ? 'İptal' : 'Değiştir'}
+            </button>}
+          </div>
+        </div>
+
+        {/* Merchant Salt */}
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Merchant Salt</label>
+          <div className="flex gap-2">
+            <input type="password" className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none"
+              style={{ borderColor: 'var(--border)', background: (hasSalt && !editSalt) ? 'var(--bg-muted)' : 'var(--bg-surface)', color: 'var(--text-primary)', opacity: (hasSalt && !editSalt) ? 0.7 : 1 }}
+              value={form.merchantSalt} onChange={(e) => set('merchantSalt', e.target.value)} placeholder="••••••••" disabled={hasSalt && !editSalt} />
+            {hasSalt && <button type="button" onClick={() => { setEditSalt(!editSalt); if (editSalt) set('merchantSalt', ''); }}
+              className="px-3 py-2 rounded-lg text-xs font-semibold border shrink-0"
+              style={{ borderColor: editSalt ? '#ef4444' : 'var(--border)', color: editSalt ? '#ef4444' : 'var(--text-secondary)', background: 'var(--bg-surface)' }}>
+              {editSalt ? 'İptal' : 'Değiştir'}
+            </button>}
+          </div>
+        </div>
+      </div>
+
+      <Button onClick={() => save.mutate()} disabled={save.isPending}>
+        {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+      </Button>
+    </div>
+  );
+}
+
+// ── Havale / EFT ──────────────────────────────────────────────────────────────
+function BankTransferTab({ company }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [form, setForm] = useState({ enabled: false, bankName: '', iban: '', accountHolder: '', instructions: '' });
+
+  const { data } = useQuery({
+    queryKey: ['company-bank-transfer', company._id],
+    queryFn: () => api.get(`/companies/${company._id}/bank-transfer`).then((r) => r.data),
+  });
+  useEffect(() => { if (data) setForm({ enabled: data.enabled ?? false, bankName: data.bankName || '', iban: data.iban || '', accountHolder: data.accountHolder || '', instructions: data.instructions || '' }); }, [data]);
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const save = useMutation({
+    mutationFn: () => api.patch(`/companies/${company._id}/bank-transfer`, form),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['company-bank-transfer', company._id] }); toast.success('Havale/EFT ayarları kaydedildi'); },
+    onError:   (e) => toast.error(e.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  return (
+    <div className="space-y-5">
+      <div className="p-3 rounded-xl border text-xs" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+        Müşteri siparişi verince banka bilgileri gösterilir. Ödeme gelince panelden <strong>"Ödendi"</strong> olarak onaylarsınız.
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Havale / EFT</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktif edilince checkout'ta Havale/EFT seçeneği görünür.</p>
+        </div>
+        <button type="button" onClick={() => set('enabled', !form.enabled)} className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4" style={{ background: form.enabled ? '#6366f1' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: form.enabled ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <Input label="Banka Adı" value={form.bankName} onChange={(e) => set('bankName', e.target.value)} placeholder="Garanti Bankası" />
+        <Input label="IBAN" value={form.iban} onChange={(e) => set('iban', e.target.value.toUpperCase())} placeholder="TR00 0000 0000 0000 0000 0000 00" />
+        <Input label="Hesap Sahibi" value={form.accountHolder} onChange={(e) => set('accountHolder', e.target.value)} placeholder="Firma Adı" />
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Müşteriye Gösterilecek Açıklama</label>
+          <textarea rows={3} className="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none"
+            style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+            value={form.instructions} onChange={(e) => set('instructions', e.target.value)}
+            placeholder="Havale açıklamasına sipariş numaranızı yazmayı unutmayın." />
+        </div>
+      </div>
+
+      <Button onClick={() => save.mutate()} disabled={save.isPending}>
+        {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+      </Button>
+    </div>
+  );
+}
+
+// ── Kapıda Ödeme ──────────────────────────────────────────────────────────────
+function CashOnDeliveryTab({ company }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [form, setForm] = useState({ enabled: false, fee: 0, instructions: '' });
+
+  const { data } = useQuery({
+    queryKey: ['company-cod', company._id],
+    queryFn: () => api.get(`/companies/${company._id}/cash-on-delivery`).then((r) => r.data),
+  });
+  useEffect(() => { if (data) setForm({ enabled: data.enabled ?? false, fee: data.fee ?? 0, instructions: data.instructions || '' }); }, [data]);
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const save = useMutation({
+    mutationFn: () => api.patch(`/companies/${company._id}/cash-on-delivery`, { ...form, fee: Number(form.fee) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['company-cod', company._id] }); toast.success('Kapıda ödeme ayarları kaydedildi'); },
+    onError:   (e) => toast.error(e.response?.data?.message || 'Kaydedilemedi'),
+  });
+
+  return (
+    <div className="space-y-5">
+      <div className="p-3 rounded-xl border text-xs" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+        Kurye teslimatta nakit veya kart ile ödeme alır. Panelden siparişi <strong>"Ödendi"</strong> olarak onaylarsınız.
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Kapıda Ödeme</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktif edilince checkout'ta kapıda ödeme seçeneği görünür.</p>
+        </div>
+        <button type="button" onClick={() => set('enabled', !form.enabled)} className="relative shrink-0 w-11 h-6 rounded-full transition-colors ml-4" style={{ background: form.enabled ? '#6366f1' : 'var(--border)' }}>
+          <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: form.enabled ? 'translateX(20px)' : 'translateX(0)' }} />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <Input label="Kapıda Ödeme Bedeli (0 = ücretsiz)" type="number" min={0} value={form.fee}
+          onChange={(e) => set('fee', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Müşteriye Gösterilecek Açıklama</label>
+          <textarea rows={3} className="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none"
+            style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+            value={form.instructions} onChange={(e) => set('instructions', e.target.value)}
+            placeholder="Kurye nakit veya kart ile ödeme alır." />
+        </div>
+      </div>
+
+      <Button onClick={() => save.mutate()} disabled={save.isPending}>
+        {save.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+      </Button>
     </div>
   );
 }

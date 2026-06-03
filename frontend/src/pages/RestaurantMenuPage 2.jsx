@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { Input, Textarea, Select, ImageUrlInput } from '../components/ui/Input';
+import { Input, Textarea, Select } from '../components/ui/Input';
 import EmptyState from '../components/ui/EmptyState';
 
 const emptyCat = { name: { tr: '', en: '' }, order: 0, isActive: true };
@@ -16,8 +16,6 @@ const emptyItem = {
   currency: 'TRY',
   categoryId: '',
   isActive: true,
-  isFeatured: false,
-  image: '',
   allergens: [],
 };
 
@@ -133,8 +131,6 @@ export default function RestaurantMenuPage() {
       currency: item.currency || 'TRY',
       categoryId: item.categoryId?._id || item.categoryId || '',
       isActive: item.isActive ?? true,
-      isFeatured: item.isFeatured ?? false,
-      image: item.image || '',
       allergens: item.allergens || [],
     });
     setItemTab('tr');
@@ -234,25 +230,10 @@ export default function RestaurantMenuPage() {
                 {visibleItems.map((item) => (
                   <tr key={item._id} className="border-t hover:bg-[var(--bg-muted)] transition-colors" style={{ borderColor: 'var(--border)' }}>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center text-lg"
-                            style={{ background: 'var(--bg-muted)' }}>🍽️</div>
-                        )}
-                        <div>
-                          <div className="font-medium flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
-                            {item.name?.tr}
-                            {item.isFeatured && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold" style={{ background: '#8B1A1A', color: '#fff' }}>Öne Çıkan</span>
-                            )}
-                          </div>
-                          {item.description?.tr && (
-                            <div className="text-xs truncate max-w-xs" style={{ color: 'var(--text-muted)' }}>{item.description.tr}</div>
-                          )}
-                        </div>
-                      </div>
+                      <div className="font-medium" style={{ color: 'var(--text-primary)' }}>{item.name?.tr}</div>
+                      {item.description?.tr && (
+                        <div className="text-xs truncate max-w-xs" style={{ color: 'var(--text-muted)' }}>{item.description.tr}</div>
+                      )}
                     </td>
                     <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>
                       {item.categoryId?.name?.tr || '—'}
@@ -405,36 +386,6 @@ export default function RestaurantMenuPage() {
               <option key={c._id} value={c._id}>{c.name?.tr}</option>
             ))}
           </Select>
-          {/* Fotoğraf */}
-          <div>
-            <ImageUrlInput
-              label="Fotoğraf URL (opsiyonel)"
-              value={itemForm.image}
-              onChange={(e) => setItem('image', e.target.value)}
-              hint="600×400px önerilen"
-            />
-            {itemForm.image && (
-              <img src={itemForm.image} alt="önizleme" className="mt-2 h-28 w-full object-cover rounded-lg" />
-            )}
-          </div>
-
-          {/* Öne Çıkan */}
-          <div
-            className="flex items-center justify-between rounded-lg px-4 py-3 cursor-pointer"
-            style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)' }}
-            onClick={() => setItem('isFeatured', !itemForm.isFeatured)}
-          >
-            <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>⭐ Şefin Seçimi / Öne Çıkan</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ana sayfada ve restoran sayfasında öne çıkan ürün olarak gösterilir</p>
-            </div>
-            <div className="relative w-10 h-5 rounded-full flex-shrink-0 transition-colors"
-              style={{ background: itemForm.isFeatured ? '#10b981' : 'var(--border)' }}>
-              <span className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
-                style={{ transform: itemForm.isFeatured ? 'translateX(20px)' : 'translateX(0)' }} />
-            </div>
-          </div>
-
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Alerjenler</label>
             <div className="flex flex-wrap gap-2">

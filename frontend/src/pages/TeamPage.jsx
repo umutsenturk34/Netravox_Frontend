@@ -127,7 +127,7 @@ export default function TeamPage() {
             <Input label="Ad Soyad" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
             <Input label="Uzmanlık Alanı" value={form.specialty} onChange={(e) => setForm((f) => ({ ...f, specialty: e.target.value }))} placeholder="örn. İmplant Uzmanı" />
           </div>
-          <ImageUrlInput label="Fotoğraf URL" value={form.photo} onChange={(e) => setForm((f) => ({ ...f, photo: e.target.value }))} />
+          <ImageUrlInput label="Fotoğraf URL" value={form.photo} onChange={(e) => setForm((f) => ({ ...f, photo: e.target.value }))} hint="400×400px — kare, yüz odaklı" />
 
           <div className="flex gap-1 border-b" style={{ borderColor: 'var(--border)' }}>
             {['tr', 'en'].map((l) => (

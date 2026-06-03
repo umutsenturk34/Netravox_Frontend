@@ -24,9 +24,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
     mutationFn: async (file) => {
       const form = new FormData();
       form.append('file', file);
-      const { data: res } = await api.post('/media/upload', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const { data: res } = await api.post('/media/upload', form);
       return res;
     },
     onSuccess: (uploaded) => {
@@ -113,7 +111,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
         ref={inputRef}
         type="file"
         multiple
-        accept="image/*,video/mp4"
+        accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,video/mp4"
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />

@@ -7,28 +7,50 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Input, Textarea, Select, ImageUrlInput } from '../components/ui/Input';
 import EmptyState from '../components/ui/EmptyState';
+import { Tag, X } from 'lucide-react';
 
 const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '👕', '🧥', '🧢', '👜', '⭐', '🎁', '📦', '🛍️', '🚗', '🚙', '🏎️', '🚌', '⚡'];
 
+// extra: 'dental' | 'fitness' | 'education' | 'realEstate' | null
 const SECTOR_LABELS = {
-  dental:    { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma', sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
-  clinic:    { page: 'Klinik Hizmetleri',     item: 'Hizmet', placeholder: 'Muayene',         sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
-  beauty:    { page: 'Güzellik Hizmetleri',   item: 'Hizmet', placeholder: 'Saç Boyama',      sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
-  hotel:     { page: 'Hizmet & Olanaklar',    item: 'Hizmet', placeholder: 'Spa & Wellness',  sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
-  service:   { page: 'Hizmetler',             item: 'Hizmet', placeholder: 'Hizmet adı',      sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
-  rent:      { page: 'Araç Filosu',           item: 'Araç',   placeholder: 'Toyota Corolla',  sizes: false, material: false, vehicle: true,  category: true,  sku: false, categoryPlaceholder: 'SUV, Sedan, Van...' },
-  retail:    { page: 'Ürünler',               item: 'Ürün',   placeholder: 'Ürün adı',        sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'T-Shirts, Hoodies...' },
-  other:     { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
-  default:   { page: 'Ürünler & Hizmetler',   item: 'Ürün',   placeholder: 'Ürün/Hizmet adı', sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '' },
+  // ── Kurumsal ──
+  dental:       { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma',        sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: 'dental'     },
+  clinic:       { page: 'Klinik Hizmetleri',      item: 'Hizmet', placeholder: 'Muayene',               sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  beauty:       { page: 'Güzellik Hizmetleri',    item: 'Hizmet', placeholder: 'Saç Boyama',            sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  hotel:        { page: 'Hizmet & Olanaklar',     item: 'Hizmet', placeholder: 'Spa & Wellness',        sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  law:          { page: 'Hukuk Hizmetleri',        item: 'Hizmet', placeholder: 'Gayrimenkul Hukuku',   sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Ceza, Ticaret, Aile...', extra: null         },
+  accounting:   { page: 'Muhasebe Hizmetleri',    item: 'Hizmet', placeholder: 'Vergi Danışmanlığı',   sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Vergi, SGK, Denetim...',  extra: null         },
+  architecture: { page: 'Mimarlık Hizmetleri',    item: 'Hizmet', placeholder: 'İç Mimarlık Projesi',  sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'İç Mimarlık, Peyzaj...', extra: null         },
+  agency:       { page: 'Ajans Hizmetleri',        item: 'Hizmet', placeholder: 'SEO Paketi',           sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'SEO, Sosyal Medya, Web...', extra: null      },
+  education:    { page: 'Kurslar & Eğitimler',    item: 'Kurs',   placeholder: 'İngilizce Kursu',       sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Dil, Programlama, Sanat...', extra: 'education' },
+  fitness:      { page: 'Dersler & Paketler',      item: 'Ders',   placeholder: 'Yoga Dersi',            sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Yoga, Pilates, Crossfit...', extra: 'fitness'  },
+  real_estate:  { page: 'Emlak İlanları',           item: 'İlan',   placeholder: 'Satılık Daire',        sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Daire, Villa, Arsa...',   extra: 'realEstate' },
+  service:      { page: 'Hizmetler',               item: 'Hizmet', placeholder: 'Hizmet adı',           sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  other:        { page: 'Ürünler & Hizmetler',     item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',     sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  // ── E-ticaret ──
+  rent:         { page: 'Araç Filosu',             item: 'Araç',   placeholder: 'Toyota Corolla',       sizes: false, material: false, vehicle: true,  category: true,  sku: false, categoryPlaceholder: 'SUV, Sedan, Van...',      extra: null         },
+  retail:       { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'T-Shirts, Hoodies...',    extra: null         },
+  fashion:      { page: 'Koleksiyon',               item: 'Ürün',   placeholder: 'Ürün adı',             sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Elbiseler, Pantolonlar...', extra: null       },
+  food:         { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: false, vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Atıştırmalıklar, İçecekler...', extra: null  },
+  cosmetics:    { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: false, vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Cilt Bakım, Makyaj...',   extra: null         },
+  sports:       { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: true,  material: false, vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Ayakkabı, Forma, Ekipman...', extra: null     },
+  home_living:  { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Mobilya, Tekstil, Dekor...', extra: null      },
+  jewelry:      { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Yüzük, Kolye, Bileklik...', extra: null      },
+  restaurant_order: { page: 'Ürünler',              item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Başlangıçlar, Ana Yemekler...', extra: null  },
+  default:      { page: 'Ürünler & Hizmetler',     item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',     sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
 };
 
-const FUEL_TYPES = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];
+const FUEL_TYPES    = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];
 const TRANSMISSIONS = ['Otomatik', 'Manuel', 'Yarı Otomatik'];
 const LUGGAGE_OPTS  = ['Küçük (1 valiz)', 'Orta (2 valiz)', 'Büyük (3 valiz)', 'XL (4+ valiz)'];
 const VEHICLE_CLASS = ['Ekonomik', 'Orta Segment', 'Üst Segment', 'SUV', 'Lüks', 'Pickup', 'Minivan', 'Elektrikli', 'Spor'];
 const MILEAGE_OPTS  = ['300 km/gün', '500 km/gün', 'Sınırsız'];
+const DIFFICULTY    = ['Başlangıç', 'Orta', 'İleri', 'Tüm Seviyeler'];
+const EDU_LEVEL     = ['Başlangıç', 'Orta', 'İleri', 'Tüm Seviyeler'];
+const HEATING_TYPES = ['Kombi', 'Merkezi', 'Doğalgaz', 'Elektrik', 'Soba', 'Klima', 'Yerden Isıtma', 'Diğer'];
+const RE_TYPES      = ['Satılık', 'Kiralık', 'Günlük Kiralık', 'Devren'];
 
 const emptyService = {
   name: { tr: '', en: '' },
@@ -47,12 +69,21 @@ const emptyService = {
   price: '',
   currency: 'TRY',
   duration: '',
+  trackStock: false,
+  stock: '',
+  lowStockThreshold: '',
+  campaignPrice: '',
+  campaignStartDate: '',
+  campaignEndDate: '',
+  tags: [],
+  seo: { metaTitle: { tr: '', en: '' }, metaDescription: { tr: '', en: '' }, slug: { tr: '', en: '' } },
   isActive: true,
   order: 0,
   specs: {
     brand: '', model: '', year: '', color: '',
     fuel: '', transmission: '', seats: '', luggage: '', class: '', mileage: '',
   },
+  sectorFields: {},
 };
 
 // 3-state cycle: none → instock → outofstock → none
@@ -108,6 +139,7 @@ export default function DentalServicesPage() {
   const [form, setForm] = useState(emptyService);
   const [tab, setTab] = useState('tr');
   const [customSize, setCustomSize] = useState('');
+  const [tagInput, setTagInput] = useState('');
   const [filterSearch,   setFilterSearch]   = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
@@ -115,6 +147,12 @@ export default function DentalServicesPage() {
     queryKey: ['services', activeTenantId],
     queryFn: () => api.get('/services').then((r) => r.data),
     enabled: !!activeTenantId,
+  });
+
+  const { data: categoryOptions = [] } = useQuery({
+    queryKey: ['categories', activeTenantId],
+    queryFn: () => api.get('/categories').then((r) => r.data),
+    enabled: !!activeTenantId && labels.category,
   });
 
   const updateCache = (updater) =>
@@ -161,6 +199,9 @@ export default function DentalServicesPage() {
 
   function openEdit(svc) {
     setEditing(svc);
+    const catId = svc.category
+      ? (typeof svc.category === 'object' ? svc.category._id : svc.category)
+      : '';
     setForm({
       name: { tr: svc.name?.tr || '', en: svc.name?.en || '' },
       description: { tr: svc.description?.tr || '', en: svc.description?.en || '' },
@@ -171,13 +212,25 @@ export default function DentalServicesPage() {
       sizeGuide: { tr: svc.sizeGuide?.tr || '', en: svc.sizeGuide?.en || '' },
       sizeGuideImage: svc.sizeGuideImage || '',
       badge: svc.badge || '',
-      category: svc.category || '',
+      category: catId,
       sku: svc.sku || '',
       icon: svc.icon || '',
       image: svc.image || '',
       price: svc.price || '',
       currency: svc.currency || 'TRY',
       duration: svc.duration || '',
+      trackStock: svc.trackStock ?? false,
+      stock: svc.stock ?? '',
+      lowStockThreshold: svc.lowStockThreshold ?? '',
+      campaignPrice: svc.campaignPrice ?? '',
+      campaignStartDate: svc.campaignStartDate ? svc.campaignStartDate.slice(0, 10) : '',
+      campaignEndDate: svc.campaignEndDate ? svc.campaignEndDate.slice(0, 10) : '',
+      tags: svc.tags || [],
+      seo: {
+        metaTitle: { tr: svc.seo?.metaTitle?.tr || '', en: svc.seo?.metaTitle?.en || '' },
+        metaDescription: { tr: svc.seo?.metaDescription?.tr || '', en: svc.seo?.metaDescription?.en || '' },
+        slug: { tr: svc.seo?.slug?.tr || '', en: svc.seo?.slug?.en || '' },
+      },
       isActive: svc.isActive ?? true,
       order: svc.order || 0,
       specs: {
@@ -192,6 +245,9 @@ export default function DentalServicesPage() {
         class:        svc.specs?.class        || '',
         mileage:      svc.specs?.mileage      || '',
       },
+      sectorFields: svc.sectorFields
+        ? Object.fromEntries(Object.entries(svc.sectorFields))
+        : {},
     });
     setTab('tr');
     setModal(true);
@@ -201,10 +257,12 @@ export default function DentalServicesPage() {
     setModal(false);
     setEditing(null);
     setCustomSize('');
+    setTagInput('');
   }
 
   const set = (key, val) => setForm((p) => ({ ...p, [key]: val }));
   const setNested = (key, l, val) => setForm((p) => ({ ...p, [key]: { ...p[key], [l]: val } }));
+  const setSF = (key, val) => setForm((p) => ({ ...p, sectorFields: { ...p.sectorFields, [key]: val } }));
 
   function addCustomSize() {
     const name = customSize.trim().toUpperCase();
@@ -226,8 +284,12 @@ export default function DentalServicesPage() {
     return { inStock, out };
   };
 
-  // Unique categories for filter
-  const allCategories = [...new Set(services.map(s => s.category).filter(Boolean))].sort();
+  // Category lookup helpers
+  const catById = Object.fromEntries(categoryOptions.map((c) => [c._id, c]));
+  function catName(id) {
+    if (!id) return null;
+    return catById[id]?.name?.tr || null;
+  }
 
   // Apply filters
   const displayed = services.filter(svc => {
@@ -237,7 +299,10 @@ export default function DentalServicesPage() {
       svc.name?.en?.toLowerCase().includes(q) ||
       svc.sku?.toLowerCase().includes(q) ||
       svc._id?.toLowerCase().includes(q);
-    const matchCat = !filterCategory || svc.category === filterCategory;
+    const catId = svc.category
+      ? (typeof svc.category === 'object' ? svc.category._id : svc.category)
+      : '';
+    const matchCat = !filterCategory || catId === filterCategory;
     return matchSearch && matchCat;
   });
 
@@ -272,7 +337,7 @@ export default function DentalServicesPage() {
             )}
           </div>
           {/* Kategori filtresi */}
-          {labels.category && allCategories.length > 0 && (
+          {labels.category && categoryOptions.length > 0 && (
             <div className="flex flex-wrap gap-1.5 items-center">
               <button
                 onClick={() => setFilterCategory('')}
@@ -281,16 +346,22 @@ export default function DentalServicesPage() {
               >
                 Tümü ({services.length})
               </button>
-              {allCategories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setFilterCategory(cat === filterCategory ? '' : cat)}
-                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${filterCategory === cat ? 'bg-blue-600 text-white' : 'hover:bg-[var(--bg-muted)]'}`}
-                  style={filterCategory !== cat ? { color: 'var(--text-primary)' } : {}}
-                >
-                  {cat} ({services.filter(s => s.category === cat).length})
-                </button>
-              ))}
+              {categoryOptions.map(cat => {
+                const catCount = services.filter(s => {
+                  const id = s.category ? (typeof s.category === 'object' ? s.category._id : s.category) : '';
+                  return id === cat._id;
+                }).length;
+                return (
+                  <button
+                    key={cat._id}
+                    onClick={() => setFilterCategory(cat._id === filterCategory ? '' : cat._id)}
+                    className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${filterCategory === cat._id ? 'bg-blue-600 text-white' : 'hover:bg-[var(--bg-muted)]'}`}
+                    style={filterCategory !== cat._id ? { color: 'var(--text-primary)' } : {}}
+                  >
+                    {cat.name?.tr} ({catCount})
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -364,7 +435,18 @@ export default function DentalServicesPage() {
                   {/* Fiyat rozeti — sol alt */}
                   {svc.price && (
                     <span className="absolute bottom-2.5 left-2.5 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm backdrop-blur-sm bg-black/60 text-white">
-                      {svc.price.toLocaleString('tr-TR')} {svc.currency === 'TRY' ? '₺' : svc.currency}
+                      {svc.campaignPrice ? (
+                        <>
+                          <span className="line-through opacity-60 mr-1">
+                            {svc.price.toLocaleString('tr-TR')}{svc.currency === 'TRY' ? '₺' : svc.currency}
+                          </span>
+                          <span className="text-yellow-300">
+                            {svc.campaignPrice.toLocaleString('tr-TR')}{svc.currency === 'TRY' ? '₺' : svc.currency}
+                          </span>
+                        </>
+                      ) : (
+                        <>{svc.price.toLocaleString('tr-TR')} {svc.currency === 'TRY' ? '₺' : svc.currency}</>
+                      )}
                     </span>
                   )}
 
@@ -389,16 +471,21 @@ export default function DentalServicesPage() {
 
                   {(labels.category || labels.sku) && (
                     <div className="flex flex-wrap gap-1.5">
-                      {labels.category && svc.category && (
-                        <span
-                          className="text-[11px] px-2 py-0.5 rounded-md font-medium cursor-pointer hover:opacity-80 transition-opacity"
-                          style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}
-                          onClick={() => setFilterCategory(svc.category)}
-                          title="Bu kategoriye göre filtrele"
-                        >
-                          📂 {svc.category}
-                        </span>
-                      )}
+                      {labels.category && svc.category && (() => {
+                        const cid = typeof svc.category === 'object' ? svc.category._id : svc.category;
+                        const cname = catName(cid);
+                        if (!cname) return null;
+                        return (
+                          <span
+                            className="text-[11px] px-2 py-0.5 rounded-md font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}
+                            onClick={() => setFilterCategory(cid)}
+                            title="Bu kategoriye göre filtrele"
+                          >
+                            📂 {cname}
+                          </span>
+                        );
+                      })()}
                       {labels.sku && svc.sku && (
                         <span className="text-[11px] px-2 py-0.5 rounded-md font-mono"
                           style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
@@ -416,6 +503,57 @@ export default function DentalServicesPage() {
                     <div className="text-[11px] space-y-0.5">
                       {sp.inStock && <p className="text-green-600 dark:text-green-400">✓ {sp.inStock}</p>}
                       {sp.out     && <p className="text-red-400 line-through">{sp.out}</p>}
+                    </div>
+                  )}
+
+                  {svc.trackStock && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-md font-medium w-fit"
+                      style={{
+                        background: svc.stock > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                        color: svc.stock > 0 ? '#059669' : '#dc2626',
+                      }}>
+                      {svc.stock > 0 ? `📦 ${svc.stock} adet stokta` : '⚠️ Stok tükendi'}
+                    </span>
+                  )}
+
+                  {/* Sektöre özel özet bilgiler */}
+                  {svc.sectorFields && Object.keys(svc.sectorFields).length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {svc.sectorFields.difficulty && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                          🎯 {svc.sectorFields.difficulty}
+                        </span>
+                      )}
+                      {svc.sectorFields.level && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                          📊 {svc.sectorFields.level}
+                        </span>
+                      )}
+                      {svc.sectorFields.certificate && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'rgba(16,185,129,0.1)', color: '#059669' }}>
+                          🎓 Sertifika
+                        </span>
+                      )}
+                      {svc.sectorFields.anesthesia && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
+                          💉 Anestezi
+                        </span>
+                      )}
+                      {svc.sectorFields.area && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                          📐 {svc.sectorFields.area} m²
+                        </span>
+                      )}
+                      {svc.sectorFields.rooms && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                          🚪 {svc.sectorFields.rooms}
+                        </span>
+                      )}
+                      {svc.sectorFields.listingType && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+                          {svc.sectorFields.listingType}
+                        </span>
+                      )}
                     </div>
                   )}
 
@@ -608,6 +746,147 @@ export default function DentalServicesPage() {
             </FormSection>
           )}
 
+          {/* ── Diş Hekimi Ek Alanları ── */}
+          {labels.extra === 'dental' && (
+            <FormSection title="Tedavi Detayları">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="sfAnesthesia"
+                  checked={!!form.sectorFields.anesthesia}
+                  onChange={(e) => setSF('anesthesia', e.target.checked)}
+                  className="accent-blue-600 w-4 h-4"
+                />
+                <label htmlFor="sfAnesthesia" className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                  Lokal anestezi uygulanır
+                </label>
+              </div>
+            </FormSection>
+          )}
+
+          {/* ── Fitness Ek Alanları ── */}
+          {labels.extra === 'fitness' && (
+            <FormSection title="Ders Detayları">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Zorluk Seviyesi</label>
+                  <select
+                    value={form.sectorFields.difficulty || ''}
+                    onChange={(e) => setSF('difficulty', e.target.value)}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {DIFFICULTY.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <Input
+                  label="Eğitmen Adı"
+                  value={form.sectorFields.instructor || ''}
+                  onChange={(e) => setSF('instructor', e.target.value)}
+                  placeholder="Ayşe Kaya"
+                />
+              </div>
+            </FormSection>
+          )}
+
+          {/* ── Eğitim Ek Alanları ── */}
+          {labels.extra === 'education' && (
+            <FormSection title="Kurs Detayları">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Seviye</label>
+                  <select
+                    value={form.sectorFields.level || ''}
+                    onChange={(e) => setSF('level', e.target.value)}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {EDU_LEVEL.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <Input
+                  label="Eğitmen Adı"
+                  value={form.sectorFields.instructor || ''}
+                  onChange={(e) => setSF('instructor', e.target.value)}
+                  placeholder="Mehmet Yılmaz"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="sfCertificate"
+                  checked={!!form.sectorFields.certificate}
+                  onChange={(e) => setSF('certificate', e.target.checked)}
+                  className="accent-blue-600 w-4 h-4"
+                />
+                <label htmlFor="sfCertificate" className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                  Sertifika verilir
+                </label>
+              </div>
+            </FormSection>
+          )}
+
+          {/* ── Emlak Ek Alanları ── */}
+          {labels.extra === 'realEstate' && (
+            <FormSection title="Emlak Özellikleri">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>İlan Türü</label>
+                  <select
+                    value={form.sectorFields.listingType || ''}
+                    onChange={(e) => setSF('listingType', e.target.value)}
+                    className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                  >
+                    <option value="">Seçin...</option>
+                    {RE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <Input
+                  label="Alan (m²)"
+                  type="number"
+                  value={form.sectorFields.area || ''}
+                  onChange={(e) => setSF('area', e.target.value)}
+                  placeholder="120"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Input
+                  label="Oda Sayısı"
+                  value={form.sectorFields.rooms || ''}
+                  onChange={(e) => setSF('rooms', e.target.value)}
+                  placeholder="3+1"
+                />
+                <Input
+                  label="Kat"
+                  value={form.sectorFields.floor || ''}
+                  onChange={(e) => setSF('floor', e.target.value)}
+                  placeholder="3 / 7"
+                />
+                <Input
+                  label="Yapım Yılı"
+                  value={form.sectorFields.buildYear || ''}
+                  onChange={(e) => setSF('buildYear', e.target.value)}
+                  placeholder="2018"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Isıtma</label>
+                <select
+                  value={form.sectorFields.heating || ''}
+                  onChange={(e) => setSF('heating', e.target.value)}
+                  className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                >
+                  <option value="">Seçin...</option>
+                  {HEATING_TYPES.map(h => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+            </FormSection>
+          )}
+
           {/* ── Bedenler (sadece ürün sektörlerinde) ── */}
           {labels.sizes && (
             <FormSection title="Bedenler ve Stok Durumu">
@@ -695,21 +974,32 @@ export default function DentalServicesPage() {
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                       Kategori
                     </label>
-                    <input
-                      type="text"
-                      list="category-suggestions"
-                      value={form.category}
-                      onChange={(e) => set('category', e.target.value)}
-                      placeholder={labels.categoryPlaceholder}
-                      className="w-full rounded-lg px-3.5 py-2.5 border outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
-                    />
-                    <datalist id="category-suggestions">
-                      {allCategories.map(cat => <option key={cat} value={cat} />)}
-                    </datalist>
-                    {form.category && (
-                      <p className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
-                        Bu kategori web sitesinde filtre olarak görünecek
+                    {categoryOptions.length > 0 ? (
+                      <select
+                        value={form.category}
+                        onChange={(e) => set('category', e.target.value)}
+                        className="w-full rounded-lg px-3.5 py-2.5 border outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                      >
+                        <option value="">— Kategori seç —</option>
+                        {categoryOptions.filter(c => !c.parent).map(root => {
+                          const children = categoryOptions.filter(c => {
+                            const pid = c.parent ? (typeof c.parent === 'object' ? c.parent._id : c.parent) : null;
+                            return pid === root._id;
+                          });
+                          return (
+                            <optgroup key={root._id} label={root.name?.tr}>
+                              <option value={root._id}>{root.name?.tr}</option>
+                              {children.map(child => (
+                                <option key={child._id} value={child._id}>↳ {child.name?.tr}</option>
+                              ))}
+                            </optgroup>
+                          );
+                        })}
+                      </select>
+                    ) : (
+                      <p className="text-xs italic py-2" style={{ color: 'var(--text-muted)' }}>
+                        Henüz kategori yok — önce Kategoriler sayfasından kategori ekleyin.
                       </p>
                     )}
                   </div>
@@ -737,22 +1027,6 @@ export default function DentalServicesPage() {
                   </div>
                 )}
               </div>
-              {labels.category && allCategories.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Mevcut kategoriler:</span>
-                  {allCategories.map(cat => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => set('category', cat)}
-                      className={`text-[11px] px-2 py-0.5 rounded-full transition-colors ${form.category === cat ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
-                      style={form.category !== cat ? { background: 'var(--bg-muted)', color: 'var(--text-muted)' } : {}}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              )}
             </FormSection>
           )}
 
@@ -817,6 +1091,163 @@ export default function DentalServicesPage() {
                 onChange={(e) => set('order', Number(e.target.value))}
               />
             </div>
+          </FormSection>
+
+          {/* ── Stok Takibi ── */}
+          <FormSection title="Stok Takibi">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="trackStock"
+                checked={form.trackStock}
+                onChange={(e) => set('trackStock', e.target.checked)}
+                className="accent-blue-600 w-4 h-4"
+              />
+              <label htmlFor="trackStock" className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                Stok takibi aktif — satın alınca stok otomatik düşer
+              </label>
+            </div>
+            {form.trackStock && (
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Mevcut Stok Adedi"
+                  type="number"
+                  min="0"
+                  value={form.stock}
+                  onChange={(e) => set('stock', e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder="100"
+                />
+                <Input
+                  label="Düşük Stok Uyarı Eşiği"
+                  type="number"
+                  min="0"
+                  value={form.lowStockThreshold}
+                  onChange={(e) => set('lowStockThreshold', e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder="10"
+                  hint="Bu değerin altına düşünce uyarı verilir"
+                />
+              </div>
+            )}
+          </FormSection>
+
+          {/* ── Kampanya Fiyatı ── */}
+          <FormSection title="Kampanya / İndirim">
+            <p className="text-xs -mt-1" style={{ color: 'var(--text-muted)' }}>
+              Kampanya fiyatı girilirse web sitesinde orijinal fiyat üzeri çizili, kampanya fiyatı öne çıkarılmış gösterilir.
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <Input
+                label="Kampanya Fiyatı"
+                type="number"
+                min="0"
+                value={form.campaignPrice}
+                onChange={(e) => set('campaignPrice', e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder="999"
+              />
+              <Input
+                label="Başlangıç Tarihi"
+                type="date"
+                value={form.campaignStartDate}
+                onChange={(e) => set('campaignStartDate', e.target.value)}
+              />
+              <Input
+                label="Bitiş Tarihi"
+                type="date"
+                value={form.campaignEndDate}
+                onChange={(e) => set('campaignEndDate', e.target.value)}
+              />
+            </div>
+            {form.campaignPrice && (
+              <p className="text-[11px] text-green-600 dark:text-green-400">
+                ✓ Kampanya fiyatı aktif
+                {form.campaignStartDate && form.campaignEndDate
+                  ? ` — ${form.campaignStartDate} ile ${form.campaignEndDate} arasında geçerli`
+                  : ' — tarih sınırı yok'}
+              </p>
+            )}
+          </FormSection>
+
+          {/* ── Etiketler ── */}
+          <FormSection title="Etiketler">
+            <p className="text-xs -mt-1" style={{ color: 'var(--text-muted)' }}>
+              Arama ve filtreleme için etiket ekleyin. Enter veya virgül ile ekleyin.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {form.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full"
+                  style={{ background: 'var(--bg-muted)', color: 'var(--text-primary)' }}
+                >
+                  <Tag size={10} />
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => set('tags', form.tags.filter((t) => t !== tag))}
+                    className="ml-0.5 hover:text-red-500"
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const tag = tagInput.trim().toLowerCase().replace(/,/g, '');
+                    if (tag && !form.tags.includes(tag)) {
+                      set('tags', [...form.tags, tag]);
+                    }
+                    setTagInput('');
+                  }
+                }}
+                placeholder="etiket ekle..."
+                className="flex-1 text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const tag = tagInput.trim().toLowerCase();
+                  if (tag && !form.tags.includes(tag)) set('tags', [...form.tags, tag]);
+                  setTagInput('');
+                }}
+                className="text-sm px-3 py-2 rounded-lg font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-100 transition-colors"
+              >
+                + Ekle
+              </button>
+            </div>
+          </FormSection>
+
+          {/* ── SEO ── */}
+          <FormSection title="SEO">
+            <Input
+              label={`Meta Başlık (${tab.toUpperCase()})`}
+              value={form.seo.metaTitle[tab]}
+              onChange={(e) => setForm((p) => ({ ...p, seo: { ...p.seo, metaTitle: { ...p.seo.metaTitle, [tab]: e.target.value } } }))}
+              placeholder={tab === 'tr' ? 'Sayfada görünen başlık...' : 'Page title...'}
+              hint="~60 karakter önerilir"
+            />
+            <Textarea
+              label={`Meta Açıklama (${tab.toUpperCase()})`}
+              value={form.seo.metaDescription[tab]}
+              onChange={(e) => setForm((p) => ({ ...p, seo: { ...p.seo, metaDescription: { ...p.seo.metaDescription, [tab]: e.target.value } } }))}
+              rows={2}
+              placeholder={tab === 'tr' ? 'Arama sonuçlarında görünen açıklama...' : 'Description in search results...'}
+              hint="~160 karakter önerilir"
+            />
+            <Input
+              label={`URL Slug (${tab.toUpperCase()})`}
+              value={form.seo.slug[tab]}
+              onChange={(e) => setForm((p) => ({ ...p, seo: { ...p.seo, slug: { ...p.seo.slug, [tab]: e.target.value } } }))}
+              placeholder={tab === 'tr' ? 'urun-url-adresi' : 'product-url-path'}
+              hint="Boş bırakılırsa sistem otomatik oluşturur"
+            />
           </FormSection>
 
           {/* ── Aktif toggle ── */}

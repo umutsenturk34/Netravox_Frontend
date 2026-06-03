@@ -34,10 +34,11 @@ const empty = {
   categoryId:  '',
   status:      'draft',
   seo: {
-    metaTitle: { tr: '', en: '' },
-    metaDesc:  { tr: '', en: '' },
-    ogImage:        '',
-    canonicalUrl:   '',
+    metaTitle:   { tr: '', en: '' },
+    metaDesc:    { tr: '', en: '' },
+    ogImage:     '',
+    canonicalUrl: '',
+    schemaType:  '',
   },
 };
 
@@ -81,10 +82,11 @@ export default function BlogEditorPage() {
       categoryId:  postData.categoryId?._id || postData.categoryId || '',
       status:      postData.status || 'draft',
       seo: {
-        metaTitle:    { tr: postData.seo?.metaTitle?.tr || '', en: postData.seo?.metaTitle?.en || '' },
-        metaDesc:     { tr: postData.seo?.metaDesc?.tr || '', en: postData.seo?.metaDesc?.en || '' },
-        ogImage:      postData.seo?.ogImage || '',
+        metaTitle:   { tr: postData.seo?.metaTitle?.tr || '', en: postData.seo?.metaTitle?.en || '' },
+        metaDesc:    { tr: postData.seo?.metaDesc?.tr || '', en: postData.seo?.metaDesc?.en || '' },
+        ogImage:     postData.seo?.ogImage || '',
         canonicalUrl: postData.seo?.canonicalUrl || '',
+        schemaType:  postData.seo?.schemaType || '',
       },
     });
     setSlugTouched(true);
@@ -338,6 +340,15 @@ export default function BlogEditorPage() {
                 value={form.seo.canonicalUrl}
                 onChange={(e) => setSeoField('canonicalUrl', e.target.value)}
               />
+              <Select
+                label="Schema Türü (JSON-LD)"
+                value={form.seo.schemaType || ''}
+                onChange={(e) => setSeoField('schemaType', e.target.value)}
+              >
+                <option value="">— Yok —</option>
+                <option value="BlogPosting">BlogPosting</option>
+                <option value="Article">Article</option>
+              </Select>
             </div>
           )}
         </div>

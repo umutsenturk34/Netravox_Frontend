@@ -98,8 +98,10 @@ export const AuthProvider = ({ children }) => {
     fetchCompany(tenantId);
   };
 
+  const refreshCompany = () => fetchCompany(activeTenantId);
+
   return (
-    <AuthContext.Provider value={{ user, activeTenantId, activeCompany, companyLoading, loading, login, finalizeLogin, logout, switchTenant, clearMustChangePassword }}>
+    <AuthContext.Provider value={{ user, activeTenantId, activeCompany, companyLoading, loading, login, finalizeLogin, logout, switchTenant, clearMustChangePassword, refreshCompany }}>
       {children}
     </AuthContext.Provider>
   );

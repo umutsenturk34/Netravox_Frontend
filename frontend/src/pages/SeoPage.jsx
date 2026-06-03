@@ -12,7 +12,6 @@ const TABS = [
   { id: 'general', label: 'Genel' },
   { id: 'robots', label: 'robots.txt' },
   { id: 'scripts', label: 'Özel Kodlar' },
-  { id: 'schemas', label: 'Şema İşaretleme' },
 ];
 
 const SCOPE_OPTIONS = [
@@ -428,9 +427,6 @@ export default function SeoPage() {
         </div>
       )}
 
-      {activeTab === 'schemas' && (
-        <SchemaTab activeTenantId={activeTenantId} />
-      )}
     </div>
   );
 }

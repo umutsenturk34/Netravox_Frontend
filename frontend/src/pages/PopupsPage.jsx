@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Input, Textarea, ImageUrlInput } from '../components/ui/Input';
+import DatePicker from '../components/ui/DatePicker';
 import EmptyState from '../components/ui/EmptyState';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 
@@ -170,10 +171,10 @@ export default function PopupsPage() {
               onChange={(e) => setForm((f) => ({ ...f, buttonText: { ...f.buttonText, [tab]: e.target.value } }))} />
             <Input label="Buton URL" value={form.buttonUrl} onChange={(e) => setForm((f) => ({ ...f, buttonUrl: e.target.value }))} placeholder="https://" />
           </div>
-          <ImageUrlInput label="Görsel URL" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} />
+          <ImageUrlInput label="Görsel URL" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} hint="800×600px önerilen" />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Başlangıç Tarihi" type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} />
-            <Input label="Bitiş Tarihi" type="date" value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))} />
+            <DatePicker label="Başlangıç Tarihi" value={form.startDate} onChange={(v) => setForm((f) => ({ ...f, startDate: v }))} />
+            <DatePicker label="Bitiş Tarihi" value={form.endDate} onChange={(v) => setForm((f) => ({ ...f, endDate: v }))} />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={closeModal}>İptal</Button>

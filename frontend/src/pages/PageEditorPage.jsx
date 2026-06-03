@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PlusCircle, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { PlusCircle, Trash2, ChevronUp, ChevronDown, ExternalLink } from 'lucide-react';
 import api from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Button from '../components/ui/Button';
-import { Input, Textarea, Select, ImageUrlInput } from '../components/ui/Input';
-import RichTextEditor from '../components/ui/RichTextEditor';
+import { Input, Select, Textarea, ImageUrlInput } from '../components/ui/Input';
+import BlockEditor from '../components/ui/BlockEditor';
 
 const TEMPLATES = [
   { value: 'home',        label: 'Ana Sayfa' },
@@ -25,6 +26,12 @@ const STATUSES = [
   { value: 'archived',  label: 'Arşiv' },
 ];
 
+const MANAGED_ELSEWHERE = {
+  menu:        'Restoran Menüsü ekranından yönetilir.',
+  gallery:     'Galeri ekranından yönetilir.',
+  reservation: 'Rezervasyon ekranından yönetilir.',
+};
+
 const emptyFaq = () => ({ question: '', answer: '' });
 
 const empty = {
@@ -32,8 +39,9 @@ const empty = {
   slug:     { tr: '', en: '' },
   template: 'generic',
   status:   'draft',
-  seo:      { title: { tr: '', en: '' }, description: { tr: '', en: '' }, canonical: '', robots: 'index,follow', ogImage: '', schema: null },
+  seo:      { title: { tr: '', en: '' }, description: { tr: '', en: '' }, canonical: '', robots: 'index,follow', ogImage: '', schemaType: '', schema: null },
   content:  {},
+  blocks:   [],
 };
 
 function slugify(text) {
@@ -58,105 +66,6 @@ function buildFaqSchema(faqItems) {
   };
 }
 
-/* --- Template bazlı içerik alanları --- */
-function ContentFields({ template, content, onChange, lang }) {
-  const c = content || {};
-  const set = (key, val) => onChange({ ...c, [key]: val });
-  const setLang = (key, value) => onChange({ ...c, [key]: { ...(c[key] || {}), [lang]: value } });
-  const get = (key) => c[key]?.[lang] || '';
-  const getPlain = (key) => c[key] || '';
-
-  if (template === 'home') return (
-    <div className="space-y-4">
-      <Input label="Hero Başlık" value={get('heroTitle')} onChange={(e) => setLang('heroTitle', e.target.value)} placeholder={lang === 'tr' ? 'Sadeliğin\nGücü.' : 'The Power\nOf Simplicity.'} hint="Satır atlamak için \n kullanın" />
-      <Input label="Hero Alt Başlık" value={get('heroSubtitle')} onChange={(e) => setLang('heroSubtitle', e.target.value)} />
-      <ImageUrlInput label="Hero Görsel URL" value={getPlain('heroImageUrl')} onChange={(e) => set('heroImageUrl', e.target.value)} hint="1600×900px" />
-      <Input label="Duyuru Bandı Metni" value={get('announcementText')} onChange={(e) => setLang('announcementText', e.target.value)} placeholder={lang === 'tr' ? 'Ücretsiz kargo · 750 ₺ ve üzeri...' : 'Free shipping · Orders over...'} />
-      <Input label="Ana CTA Metni" value={get('ctaText')} onChange={(e) => setLang('ctaText', e.target.value)} placeholder={lang === 'tr' ? 'Koleksiyonu Keşfet' : 'Explore Collection'} />
-      <Input label="İkincil CTA Metni" value={get('ctaSecondaryText')} onChange={(e) => setLang('ctaSecondaryText', e.target.value)} placeholder={lang === 'tr' ? 'Hikayemiz' : 'Our Story'} />
-      <Input label="CTA Bağlantı" value={getPlain('ctaUrl')} onChange={(e) => set('ctaUrl', e.target.value)} placeholder="/koleksiyonlar" />
-      <Input label="Hikaye Bölümü Başlığı" value={get('storyTitle')} onChange={(e) => setLang('storyTitle', e.target.value)} placeholder={lang === 'tr' ? 'Sadelikten\nGüç Doğar' : 'Power from\nSimplicity'} hint="Satır atlamak için \n kullanın" />
-      <Input label="Alt CTA Başlığı" value={get('ctaBottomTitle')} onChange={(e) => setLang('ctaBottomTitle', e.target.value)} placeholder={lang === 'tr' ? 'Koleksiyonu\nKeşfet' : 'Explore the\nCollection'} hint="Satır atlamak için \n kullanın" />
-      <Input label="Alt CTA Buton Metni" value={get('ctaBottomText')} onChange={(e) => setLang('ctaBottomText', e.target.value)} placeholder={lang === 'tr' ? 'Tüm Ürünleri Gör' : 'View All Products'} />
-    </div>
-  );
-
-  if (template === 'about') return (
-    <div className="space-y-4">
-      <ImageUrlInput label="Hero Görsel URL" value={getPlain('imageUrl')} onChange={(e) => set('imageUrl', e.target.value)} hint="1200×800px" />
-      <Input label="Misyon Başlığı" value={get('missionTitle')} onChange={(e) => setLang('missionTitle', e.target.value)} placeholder={lang === 'tr' ? 'Minimal Tasarım.\nMaksimal Etki.' : 'Minimal Design.\nMaximum Impact.'} hint="Satır atlamak için \n kullanın" />
-      <div>
-        <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Hakkımızda Metni (HTML)</p>
-        <RichTextEditor
-          value={get('body')}
-          onChange={(val) => setLang('body', val)}
-          placeholder={lang === 'tr' ? 'Firmayı anlatan paragraflar...' : 'About paragraphs...'}
-        />
-      </div>
-      <div className="p-3 rounded-lg text-xs space-y-1" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
-        <p className="font-semibold" style={{ color: 'var(--text-secondary)' }}>İstatistikler (stats)</p>
-        <p>Örnek: <code>[&#123;"value":"2023","label":&#123;"tr":"Kuruluş Yılı","en":"Founded"&#125;&#125;]</code></p>
-        <p>stats alanı şu an seed ile girilmiş. JSON düzenleyiciden değiştirilebilir.</p>
-      </div>
-    </div>
-  );
-
-  if (template === 'menu') return (
-    <div className="space-y-4">
-      <Input label="Bölüm Başlığı" value={get('sectionTitle')} onChange={(e) => setLang('sectionTitle', e.target.value)} placeholder={lang === 'tr' ? 'Menümüz' : 'Our Menu'} />
-      <Textarea label="Giriş Metni" rows={2} value={get('introText')} onChange={(e) => setLang('introText', e.target.value)} />
-      <div className="text-xs p-3 rounded-lg" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
-        Menü içeriği "Restoran Menüsü" ekranından yönetilir.
-      </div>
-    </div>
-  );
-
-  if (template === 'gallery') return (
-    <div className="space-y-4">
-      <Input label="Galeri Başlığı" value={get('title')} onChange={(e) => setLang('title', e.target.value)} />
-      <Textarea label="Açıklama" rows={2} value={get('subtitle')} onChange={(e) => setLang('subtitle', e.target.value)} />
-      <div className="text-xs p-3 rounded-lg" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
-        Galeri görselleri "Medya Kütüphanesi" ekranından yönetilir.
-      </div>
-    </div>
-  );
-
-  if (template === 'contact') return (
-    <div className="space-y-4">
-      <Input label="Adres" value={get('address')} onChange={(e) => setLang('address', e.target.value)} />
-      <Input label="Telefon" value={getPlain('phone')} onChange={(e) => set('phone', e.target.value)} placeholder="+90 262 000 00 00" />
-      <Input label="E-posta" value={getPlain('email')} onChange={(e) => set('email', e.target.value)} placeholder="info@firma.com" />
-      <Textarea label="Çalışma Saatleri" rows={3} value={get('workingHours')} onChange={(e) => setLang('workingHours', e.target.value)} />
-      <Input label="Google Maps Embed URL" value={getPlain('mapsEmbedUrl')} onChange={(e) => set('mapsEmbedUrl', e.target.value)} placeholder="https://maps.google.com/maps?..." />
-    </div>
-  );
-
-  if (template === 'reservation') return (
-    <div className="space-y-4">
-      <Input label="Bölüm Başlığı" value={get('title')} onChange={(e) => setLang('title', e.target.value)} />
-      <Textarea label="Açıklama" rows={2} value={get('subtitle')} onChange={(e) => setLang('subtitle', e.target.value)} />
-      <Textarea label="Not / Uyarı" rows={2} value={get('note')} onChange={(e) => setLang('note', e.target.value)} />
-      <div className="text-xs p-3 rounded-lg" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
-        Rezervasyon talepleri "Rezervasyonlar" ekranından yönetilir.
-      </div>
-    </div>
-  );
-
-  if (template === 'generic' || template === 'legal') return (
-    <div className="space-y-4">
-      <div>
-        <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>İçerik</p>
-        <RichTextEditor
-          value={get('body')}
-          onChange={(val) => setLang('body', val)}
-          placeholder={lang === 'tr' ? 'Sayfa içeriği...' : 'Page content...'}
-        />
-      </div>
-    </div>
-  );
-
-  return null;
-}
 
 /* --- SSS (FAQ) Yönetimi --- */
 function FaqManager({ content, onChange, lang }) {
@@ -241,9 +150,10 @@ export default function PageEditorPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeCompany } = useAuth();
 
   const [form, setForm] = useState(empty);
-  const [activeTab, setActiveTab] = useState('tr');
+  const [activeTab, setActiveTab] = useState('temel');
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['pages', id],
@@ -264,9 +174,11 @@ export default function PageEditorPage() {
           canonical:   existing.seo?.canonical   || '',
           robots:      existing.seo?.robots      || 'index,follow',
           ogImage:     existing.seo?.ogImage     || '',
+          schemaType:  existing.seo?.schemaType  || '',
           schema:      existing.seo?.schema      || null,
         },
         content: existing.content || {},
+        blocks:  existing.blocks  || [],
       });
     }
   }, [existing]);
@@ -278,11 +190,12 @@ export default function PageEditorPage() {
       const faqEn = (data.content?.faq_en || []).filter((f) => f.question && f.answer);
       const faqForSchema = faqTr.length ? faqTr : faqEn;
 
+      const isFaqSchema = data.seo?.schemaType === 'FAQPage' || (!data.seo?.schemaType && faqForSchema.length > 0);
       const payload = {
         ...data,
         seo: {
           ...data.seo,
-          schema: faqForSchema.length ? buildFaqSchema(faqForSchema) : (data.seo?.schema || null),
+          schema: isFaqSchema && faqForSchema.length ? buildFaqSchema(faqForSchema) : null,
         },
       };
 
@@ -317,15 +230,26 @@ export default function PageEditorPage() {
     if (!isEdit) set(`slug.${lang}`, slugify(val));
   };
 
+  const handlePreview = async () => {
+    if (!activeCompany?._id) return toast.error('Firma seçilmedi');
+    const slug = form.slug?.tr || '/';
+    try {
+      const { data } = await api.get(`/companies/${activeCompany._id}/preview-url?slug=${encodeURIComponent(slug)}`);
+      window.open(data.url, '_blank');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Önizleme URL\'si alınamadı');
+    }
+  };
+
   if (isLoading) return (
     <div className="py-16 text-center" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>
   );
 
   const tabs = [
-    { id: 'tr',  label: 'Türkçe' },
-    { id: 'en',  label: 'İngilizce' },
-    { id: 'faq', label: 'SSS / FAQ' },
-    { id: 'seo', label: 'SEO' },
+    { id: 'temel',  label: 'Temel' },
+    { id: 'blocks', label: 'İçerik' },
+    { id: 'faq',    label: 'SSS / FAQ' },
+    { id: 'seo',    label: 'SEO' },
   ];
 
   return (
@@ -343,9 +267,21 @@ export default function PageEditorPage() {
             {isEdit ? 'Sayfa Düzenle' : 'Yeni Sayfa'}
           </h1>
         </div>
-        <Button onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending}>
-          {saveMutation.isPending ? 'Kaydediliyor...' : 'Kaydet'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isEdit && (
+            <button
+              type="button"
+              onClick={handlePreview}
+              className="flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--bg-muted)]"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+            >
+              <ExternalLink size={14} /> Önizle
+            </button>
+          )}
+          <Button onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+          </Button>
+        </div>
       </div>
 
       {/* Temel ayarlar */}
@@ -379,33 +315,34 @@ export default function PageEditorPage() {
         </div>
 
         <div className="p-5 space-y-4">
-          {/* TR / EN içerik */}
-          {(activeTab === 'tr' || activeTab === 'en') && (
+          {/* Temel — başlık ve slug */}
+          {activeTab === 'temel' && (
             <>
-              <Input
-                label="Başlık"
-                value={form.title[activeTab]}
-                onChange={(e) => handleTitleChange(activeTab, e.target.value)}
-                placeholder={activeTab === 'tr' ? 'Sayfa başlığı' : 'Page title'}
-              />
-              <Input
-                label="Slug (URL)"
-                value={form.slug[activeTab]}
-                onChange={(e) => set(`slug.${activeTab}`, e.target.value)}
-                placeholder={activeTab === 'tr' ? 'sayfa-slugi' : 'page-slug'}
-              />
-              <div className="border-t pt-4" style={{ borderColor: 'var(--border)' }}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>
-                  İçerik — {activeTab.toUpperCase()}
-                </p>
-                <ContentFields
-                  template={form.template}
-                  content={form.content}
-                  onChange={(newContent) => set('content', newContent)}
-                  lang={activeTab}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Başlık (TR)" value={form.title.tr} onChange={(e) => handleTitleChange('tr', e.target.value)} placeholder="Sayfa başlığı" />
+                <Input label="Başlık (EN)" value={form.title.en} onChange={(e) => handleTitleChange('en', e.target.value)} placeholder="Page title" />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Slug / URL (TR)" value={form.slug.tr} onChange={(e) => set('slug.tr', e.target.value)} placeholder="sayfa-url" />
+                <Input label="Slug / URL (EN)" value={form.slug.en} onChange={(e) => set('slug.en', e.target.value)} placeholder="page-url" />
+              </div>
+              {MANAGED_ELSEWHERE[form.template] && (
+                <div className="rounded-xl border p-4 flex gap-3" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+                  <span className="text-lg shrink-0">📋</span>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Bu sayfanın ana içeriği <strong>{MANAGED_ELSEWHERE[form.template]}</strong> Ek bölümler için <strong>İçerik</strong> sekmesinden blok ekleyebilirsiniz.
+                  </p>
+                </div>
+              )}
             </>
+          )}
+
+          {/* İçerik — tüm şablonlar için blok editörü */}
+          {activeTab === 'blocks' && (
+            <BlockEditor
+              blocks={form.blocks || []}
+              onChange={(b) => set('blocks', b)}
+            />
           )}
 
           {/* SSS / FAQ */}
@@ -454,9 +391,17 @@ export default function PageEditorPage() {
                 </Select>
               </div>
               <ImageUrlInput label="OG Görsel URL" value={form.seo.ogImage || ''} onChange={(e) => set('seo.ogImage', e.target.value)} hint="1200×630px" />
+              <Select label="Schema Türü (JSON-LD)" value={form.seo.schemaType || ''} onChange={(e) => set('seo.schemaType', e.target.value)}>
+                <option value="">— Yok —</option>
+                <option value="WebPage">WebPage</option>
+                <option value="Article">Article</option>
+                <option value="Service">Service</option>
+                <option value="FAQPage">FAQPage (SSS'den otomatik)</option>
+                <option value="Event">Event</option>
+              </Select>
 
               {/* Schema önizleme */}
-              {form.content?.faq_tr?.filter((f) => f.question).length > 0 && (
+              {(form.seo.schemaType === 'FAQPage' || !form.seo.schemaType) && form.content?.faq_tr?.filter((f) => f.question).length > 0 && (
                 <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
                   <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                     JSON-LD FAQPage Schema (otomatik)

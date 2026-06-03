@@ -7,8 +7,12 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Request: token + tenantId ekles
+// Request: token + tenantId ekle, FormData ise Content-Type'ı sil (browser boundary'yi kendisi ekler)
 api.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+
   const token = localStorage.getItem('accessToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
