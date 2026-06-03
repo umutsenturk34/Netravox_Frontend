@@ -102,29 +102,46 @@ export default function LoginPage() {
   const logo = tenant?.branding?.logoDark || tenant?.branding?.logoLight;
   const displayName = tenant?.name || 'Netravox CMS';
 
+  const isLight = !!(tenant && tenantSlug);
+
+  const lightInput = {
+    background: '#f9fafb',
+    border: '1px solid #e5e7eb',
+    color: '#111827',
+  };
+  const lightInputFocus = {
+    border: '1px solid #6366f1',
+    background: '#fff',
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #07070f 0%, #0d0d1a 50%, #07070f 100%)' }}
+      style={isLight
+        ? { background: '#f5f5f0' }
+        : { background: 'linear-gradient(135deg, #07070f 0%, #0d0d1a 50%, #07070f 100%)' }
+      }
     >
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #6366f1, transparent)' }} />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #8b5cf6, transparent)' }} />
-      </div>
+      {!isLight && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10"
+            style={{ background: 'radial-gradient(circle, #6366f1, transparent)' }} />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full opacity-10"
+            style={{ background: 'radial-gradient(circle, #8b5cf6, transparent)' }} />
+        </div>
+      )}
 
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           {tenantLoading ? (
-            <div className="w-16 h-16 rounded-2xl bg-white/5 animate-pulse mb-4" />
+            <div className={`w-16 h-16 rounded-2xl animate-pulse mb-4 ${isLight ? 'bg-gray-200' : 'bg-white/5'}`} />
           ) : logo ? (
             <img src={logo} alt={displayName} className="h-14 w-auto object-contain mb-4" />
           ) : (
             <img src="/logo-dark.svg" alt="Netravox" className="h-10 w-auto object-contain mb-4" />
           )}
-          <h1 className="text-xl font-bold text-white tracking-tight">{displayName}</h1>
+          <h1 className={`text-xl font-bold tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>{displayName}</h1>
           {tenantSlug && !tenantLoading && !tenant && (
             <p className="text-xs mt-1 text-red-400">Firma bulunamadı</p>
           )}
@@ -132,7 +149,11 @@ export default function LoginPage() {
 
         <div
           className="rounded-2xl p-8"
-          style={{
+          style={isLight ? {
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+          } : {
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
             backdropFilter: 'blur(16px)',
@@ -142,40 +163,40 @@ export default function LoginPage() {
           {/* ── Adım 1: Email + Şifre ── */}
           {step === 'credentials' && (
             <>
-              <p className="text-sm mb-6 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              <p className="text-sm mb-6 text-center" style={{ color: isLight ? '#6b7280' : 'rgba(255,255,255,0.45)' }}>
                 Panel hesabınıza giriş yapın
               </p>
               <form onSubmit={handleCredentials} className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}>E-posta</label>
+                    style={{ color: isLight ? '#9ca3af' : 'rgba(255,255,255,0.4)' }}>E-posta</label>
                   <input
                     type="email" required value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                    style={inputStyle} placeholder="ornek@email.com" autoComplete="email"
-                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                    onBlur={(e) => Object.assign(e.target.style, inputStyle)}
+                    style={isLight ? lightInput : inputStyle} placeholder="ornek@email.com" autoComplete="email"
+                    onFocus={(e) => Object.assign(e.target.style, isLight ? lightInputFocus : inputFocus)}
+                    onBlur={(e) => Object.assign(e.target.style, isLight ? lightInput : inputStyle)}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}>Şifre</label>
+                    style={{ color: isLight ? '#9ca3af' : 'rgba(255,255,255,0.4)' }}>Şifre</label>
                   <input
                     type="password" required value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                    style={inputStyle} placeholder="••••••••" autoComplete="current-password"
-                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                    onBlur={(e) => Object.assign(e.target.style, inputStyle)}
+                    style={isLight ? lightInput : inputStyle} placeholder="••••••••" autoComplete="current-password"
+                    onFocus={(e) => Object.assign(e.target.style, isLight ? lightInputFocus : inputFocus)}
+                    onBlur={(e) => Object.assign(e.target.style, isLight ? lightInput : inputStyle)}
                   />
                 </div>
-                {error && <ErrorBox message={error} />}
+                {error && <ErrorBox message={error} isLight={isLight} />}
                 <SubmitButton loading={loading} label="Giriş Yap" loadingLabel="Giriş yapılıyor..." />
               </form>
               <div className="mt-5 text-center">
                 <Link to="/forgot-password" className="text-xs transition-colors hover:text-indigo-400"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  style={{ color: isLight ? '#9ca3af' : 'rgba(255,255,255,0.35)' }}>
                   Şifremi Unuttum
                 </Link>
               </div>
@@ -222,7 +243,7 @@ export default function LoginPage() {
           )}
         </div>
 
-        <p className="text-center mt-6 text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
+        <p className="text-center mt-6 text-xs" style={{ color: isLight ? '#d1d5db' : 'rgba(255,255,255,0.2)' }}>
           Netravox CMS · v1.0
         </p>
       </div>
@@ -230,10 +251,13 @@ export default function LoginPage() {
   );
 }
 
-function ErrorBox({ message }) {
+function ErrorBox({ message, isLight }) {
   return (
     <div className="rounded-lg px-4 py-3 text-sm"
-      style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5' }}>
+      style={isLight
+        ? { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626' }
+        : { background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5' }
+      }>
       {message}
     </div>
   );
