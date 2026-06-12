@@ -22,7 +22,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
-import DentalServicesPage from './pages/DentalServicesPage';
+import ServicesPage from './pages/ServicesPage';
 import PropertiesManagePage from './pages/PropertiesManagePage';
 import BlogListPage from './pages/BlogListPage';
 import BlogEditorPage from './pages/BlogEditorPage';
@@ -99,8 +99,8 @@ export default function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="roles" element={<SuperAdminRoute><RolesPage /></SuperAdminRoute>} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="dental/services" element={<DentalServicesPage />} />
-          <Route path="services" element={<DentalServicesPage />} />
+          <Route path="dental/services" element={<ServicesPage />} />
+          <Route path="services" element={<ServicesPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="stock" element={<StockPage />} />

@@ -128,7 +128,7 @@ function FormSection({ title, children }) {
   );
 }
 
-export default function DentalServicesPage() {
+export default function ServicesPage() {
   const { toast } = useToast();
   const { activeTenantId, activeCompany } = useAuth();
   const labels = SECTOR_LABELS[activeCompany?.sector] || SECTOR_LABELS.default;
