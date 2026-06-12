@@ -20,6 +20,7 @@ function EditModal({ item, onClose, onSave }) {
   const [altTr, setAltTr] = useState(item.alt?.tr || '');
   const [captionTr, setCaptionTr] = useState(item.caption?.tr || '');
   const [category, setCategory] = useState(item.category || '');
+  const [showInGallery, setShowInGallery] = useState(item.showInGallery ?? false);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -29,6 +30,7 @@ function EditModal({ item, onClose, onSave }) {
         alt: { tr: altTr },
         caption: { tr: captionTr },
         category: category || null,
+        showInGallery,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['media'] });
@@ -55,6 +57,24 @@ function EditModal({ item, onClose, onSave }) {
         )}
 
         <div className="space-y-3">
+          {/* Galeride Göster toggle */}
+          <div
+            className="flex items-center justify-between p-3 rounded-lg border cursor-pointer"
+            style={{
+              borderColor: showInGallery ? '#6366f1' : 'var(--border)',
+              background: showInGallery ? 'rgba(99,102,241,0.05)' : 'var(--bg-base)',
+            }}
+            onClick={() => setShowInGallery(v => !v)}
+          >
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Web Sitesi Galerisinde Göster</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktifse Galeri sayfasında görünür</p>
+            </div>
+            <div className={`w-10 h-6 rounded-full transition-colors relative ${showInGallery ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${showInGallery ? 'translate-x-5' : 'translate-x-1'}`} />
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>
               Galeri Kategorisi
@@ -219,6 +239,11 @@ export default function MediaPage() {
                 <img src={item.thumbnailUrl} alt={item.alt?.tr || ''} className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl" style={{ color: 'var(--text-muted)' }}>🎬</div>
+              )}
+              {item.showInGallery && (
+                <div className="absolute top-1 right-1 bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
+                  Galeri ✓
+                </div>
               )}
               {item.category && (
                 <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
