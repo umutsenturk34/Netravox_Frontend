@@ -16,30 +16,30 @@ const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '�
 // extra: 'dental' | 'fitness' | 'education' | 'realEstate' | null
 const SECTOR_LABELS = {
   // ── Kurumsal ──
-  dental:       { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma',        sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: 'dental'     },
-  clinic:       { page: 'Klinik Hizmetleri',      item: 'Hizmet', placeholder: 'Muayene',               sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
-  beauty:       { page: 'Güzellik Hizmetleri',    item: 'Hizmet', placeholder: 'Saç Boyama',            sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
-  hotel:        { page: 'Hizmet & Olanaklar',     item: 'Hizmet', placeholder: 'Spa & Wellness',        sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
-  law:          { page: 'Hukuk Hizmetleri',        item: 'Hizmet', placeholder: 'Gayrimenkul Hukuku',   sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Ceza, Ticaret, Aile...', extra: null         },
-  accounting:   { page: 'Muhasebe Hizmetleri',    item: 'Hizmet', placeholder: 'Vergi Danışmanlığı',   sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Vergi, SGK, Denetim...',  extra: null         },
-  architecture: { page: 'Mimarlık Hizmetleri',    item: 'Hizmet', placeholder: 'İç Mimarlık Projesi',  sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'İç Mimarlık, Peyzaj...', extra: null         },
-  agency:       { page: 'Ajans Hizmetleri',        item: 'Hizmet', placeholder: 'SEO Paketi',           sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'SEO, Sosyal Medya, Web...', extra: null      },
-  education:    { page: 'Kurslar & Eğitimler',    item: 'Kurs',   placeholder: 'İngilizce Kursu',       sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Dil, Programlama, Sanat...', extra: 'education' },
-  fitness:      { page: 'Dersler & Paketler',      item: 'Ders',   placeholder: 'Yoga Dersi',            sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Yoga, Pilates, Crossfit...', extra: 'fitness'  },
-  real_estate:  { page: 'Emlak İlanları',           item: 'İlan',   placeholder: 'Satılık Daire',        sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Daire, Villa, Arsa...',   extra: 'realEstate' },
-  service:      { page: 'Hizmetler',               item: 'Hizmet', placeholder: 'Hizmet adı',           sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
-  other:        { page: 'Ürünler & Hizmetler',     item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',     sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  dental:       { page: 'Diş Hekimi Hizmetleri', item: 'Hizmet', placeholder: 'Diş Beyazlatma',        sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: 'dental'     },
+  clinic:       { page: 'Klinik Hizmetleri',      item: 'Hizmet', placeholder: 'Muayene',               sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
+  beauty:       { page: 'Güzellik Hizmetleri',    item: 'Hizmet', placeholder: 'Saç Boyama',            sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
+  hotel:        { page: 'Hizmet & Olanaklar',     item: 'Hizmet', placeholder: 'Spa & Wellness',        sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
+  law:          { page: 'Hukuk Hizmetleri',       item: 'Hizmet', placeholder: 'Gayrimenkul Hukuku',    sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: false, categoryPlaceholder: 'Ceza, Ticaret, Aile...',    extra: null         },
+  accounting:   { page: 'Muhasebe Hizmetleri',   item: 'Hizmet', placeholder: 'Vergi Danışmanlığı',    sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: false, categoryPlaceholder: 'Vergi, SGK, Denetim...',    extra: null         },
+  architecture: { page: 'Mimarlık Hizmetleri',   item: 'Hizmet', placeholder: 'İç Mimarlık Projesi',   sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: false, categoryPlaceholder: 'İç Mimarlık, Peyzaj...',    extra: null         },
+  agency:       { page: 'Ajans Hizmetleri',       item: 'Hizmet', placeholder: 'SEO Paketi',            sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: false, categoryPlaceholder: 'SEO, Sosyal Medya, Web...',  extra: null         },
+  education:    { page: 'Kurslar & Eğitimler',   item: 'Kurs',   placeholder: 'İngilizce Kursu',        sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: false, categoryPlaceholder: 'Dil, Programlama, Sanat...', extra: 'education'  },
+  fitness:      { page: 'Dersler & Paketler',     item: 'Ders',   placeholder: 'Yoga Dersi',             sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: false, categoryPlaceholder: 'Yoga, Pilates, Crossfit...',  extra: 'fitness'   },
+  real_estate:  { page: 'Emlak İlanları',          item: 'İlan',   placeholder: 'Satılık Daire',         sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: true,  categoryPlaceholder: 'Daire, Villa, Arsa...',       extra: 'realEstate' },
+  service:      { page: 'Hizmetler',              item: 'Hizmet', placeholder: 'Hizmet adı',             sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
+  other:        { page: 'Ürünler & Hizmetler',    item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',      sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
   // ── E-ticaret ──
-  rent:         { page: 'Araç Filosu',             item: 'Araç',   placeholder: 'Toyota Corolla',       sizes: false, material: false, vehicle: true,  category: true,  sku: false, categoryPlaceholder: 'SUV, Sedan, Van...',      extra: null         },
-  retail:       { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'T-Shirts, Hoodies...',    extra: null         },
-  fashion:      { page: 'Koleksiyon',               item: 'Ürün',   placeholder: 'Ürün adı',             sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Elbiseler, Pantolonlar...', extra: null       },
-  food:         { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: false, vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Atıştırmalıklar, İçecekler...', extra: null  },
-  cosmetics:    { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: false, vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Cilt Bakım, Makyaj...',   extra: null         },
-  sports:       { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: true,  material: false, vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Ayakkabı, Forma, Ekipman...', extra: null     },
-  home_living:  { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Mobilya, Tekstil, Dekor...', extra: null      },
-  jewelry:      { page: 'Ürünler',                  item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: true,  vehicle: false, category: true,  sku: true,  categoryPlaceholder: 'Yüzük, Kolye, Bileklik...', extra: null      },
-  restaurant_order: { page: 'Ürünler',              item: 'Ürün',   placeholder: 'Ürün adı',             sizes: false, material: false, vehicle: false, category: true,  sku: false, categoryPlaceholder: 'Başlangıçlar, Ana Yemekler...', extra: null  },
-  default:      { page: 'Ürünler & Hizmetler',     item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',     sizes: false, material: false, vehicle: false, category: false, sku: false, categoryPlaceholder: '',                        extra: null         },
+  rent:             { page: 'Araç Filosu',   item: 'Araç', placeholder: 'Toyota Corolla',            sizes: false, material: false, vehicle: true,  category: true,  sku: false, badge: true,  gallery: false, categoryPlaceholder: 'SUV, Sedan, Van...',            extra: null         },
+  retail:           { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'T-Shirts, Hoodies...',          extra: null         },
+  fashion:          { page: 'Koleksiyon',    item: 'Ürün', placeholder: 'Ürün adı',                  sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Elbiseler, Pantolonlar...',     extra: null         },
+  food:             { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Atıştırmalıklar, İçecekler...', extra: null        },
+  cosmetics:        { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Cilt Bakım, Makyaj...',         extra: null         },
+  sports:           { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: true,  material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Ayakkabı, Forma, Ekipman...',   extra: null         },
+  home_living:      { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Mobilya, Tekstil, Dekor...',    extra: null         },
+  jewelry:          { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Yüzük, Kolye, Bileklik...',    extra: null         },
+  restaurant_order: { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: true,  categoryPlaceholder: 'Başlangıçlar, Ana Yemekler...', extra: null        },
+  default:          { page: 'Ürünler & Hizmetler', item: 'Ürün', placeholder: 'Ürün/Hizmet adı',    sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                              extra: null         },
 };
 
 const FUEL_TYPES    = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];
@@ -62,6 +62,7 @@ const emptyService = {
   sizeGuide: { tr: '', en: '' },
   sizeGuideImage: '',
   badge: '',
+  gallery: [],
   category: '',
   sku: '',
   icon: '',
@@ -140,6 +141,7 @@ export default function ServicesPage() {
   const [tab, setTab] = useState('tr');
   const [customSize, setCustomSize] = useState('');
   const [tagInput, setTagInput] = useState('');
+  const [galleryInput, setGalleryInput] = useState('');
   const [filterSearch,   setFilterSearch]   = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
@@ -212,6 +214,7 @@ export default function ServicesPage() {
       sizeGuide: { tr: svc.sizeGuide?.tr || '', en: svc.sizeGuide?.en || '' },
       sizeGuideImage: svc.sizeGuideImage || '',
       badge: svc.badge || '',
+      gallery: svc.gallery || [],
       category: catId,
       sku: svc.sku || '',
       icon: svc.icon || '',
@@ -258,6 +261,7 @@ export default function ServicesPage() {
     setEditing(null);
     setCustomSize('');
     setTagInput('');
+    setGalleryInput('');
   }
 
   const set = (key, val) => setForm((p) => ({ ...p, [key]: val }));
@@ -423,7 +427,7 @@ export default function ServicesPage() {
                     <span className="text-[11px] font-medium opacity-40" style={{ color: 'var(--text-muted)' }}>Görsel yok</span>
                   </div>
 
-                  {/* Aktif/Pasif rozet — görselin üzerinde */}
+                  {/* Aktif/Pasif rozet — sağ üst */}
                   <span className={`absolute top-2.5 right-2.5 text-[11px] px-2.5 py-1 rounded-full font-semibold shadow-sm backdrop-blur-sm ${
                     svc.isActive
                       ? 'bg-green-500/90 text-white'
@@ -431,6 +435,20 @@ export default function ServicesPage() {
                   }`}>
                     {svc.isActive ? 'Aktif' : 'Pasif'}
                   </span>
+
+                  {/* Badge — sol üst */}
+                  {svc.badge && (
+                    <span className="absolute top-2.5 left-2.5 text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-500 text-white shadow-sm">
+                      {svc.badge}
+                    </span>
+                  )}
+
+                  {/* Galeri sayısı — sağ alt */}
+                  {svc.gallery?.length > 0 && (
+                    <span className="absolute bottom-2.5 right-2.5 text-[10px] px-1.5 py-0.5 rounded font-medium bg-black/50 text-white">
+                      +{svc.gallery.length} 📷
+                    </span>
+                  )}
 
                   {/* Fiyat rozeti — sol alt */}
                   {svc.price && (
@@ -632,12 +650,12 @@ export default function ServicesPage() {
                 placeholder={tab === 'tr' ? '%100 Organik Pamuk, 220 GSM...' : '100% Organic Cotton, 220 GSM...'}
               />
             )}
-            {labels.vehicle && (
+            {labels.badge && (
               <Input
                 label="Rozet / Etiket (isteğe bağlı)"
                 value={form.badge}
                 onChange={(e) => set('badge', e.target.value)}
-                placeholder="YENİ, En Popüler, Fırsatı Kaçırma..."
+                placeholder="YENİ, Çok Satan, Fırsat, En Popüler..."
               />
             )}
           </FormSection>
@@ -1069,11 +1087,77 @@ export default function ServicesPage() {
             </div>
 
             <ImageUrlInput
-              label="Ürün Görseli URL"
+              label="Ana Görsel URL"
               value={form.image}
               onChange={(e) => set('image', e.target.value)}
-              hint="600×800px (3:4)"
+              hint="600×800px (3:4) — listede ve detay sayfasında kullanılır"
             />
+
+            {labels.gallery && (
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wider pb-1 border-b" style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}>
+                  Ek Görseller (Galeri)
+                </p>
+                {form.gallery.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {form.gallery.map((url, i) => (
+                      <div key={i} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Görsel ${i + 1}`}
+                          className="w-16 h-16 object-cover rounded-lg border"
+                          style={{ borderColor: 'var(--border)' }}
+                          onError={(e) => { e.currentTarget.src = ''; e.currentTarget.style.display = 'none'; }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => set('gallery', form.gallery.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={galleryInput}
+                    onChange={(e) => setGalleryInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const url = galleryInput.trim();
+                        if (url && !form.gallery.includes(url)) {
+                          set('gallery', [...form.gallery, url]);
+                          setGalleryInput('');
+                        }
+                      }
+                    }}
+                    placeholder="https://... görsel URL ekle"
+                    className="flex-1 text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = galleryInput.trim();
+                      if (url && !form.gallery.includes(url)) {
+                        set('gallery', [...form.gallery, url]);
+                        setGalleryInput('');
+                      }
+                    }}
+                    className="text-sm px-3 py-2 rounded-lg font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-100 transition-colors"
+                  >
+                    + Ekle
+                  </button>
+                </div>
+                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  {form.gallery.length} görsel eklendi — detay sayfasında galeri olarak gösterilir
+                </p>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               {!labels.sizes && !labels.vehicle && (
