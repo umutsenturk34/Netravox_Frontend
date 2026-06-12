@@ -56,15 +56,21 @@ const KURUMSAL_SECTORS = [
 ];
 
 const ETICARET_SECTORS = [
-  { value: 'retail',            label: 'Genel Perakende / Giyim' },
-  { value: 'fashion',           label: 'Premium Moda' },
-  { value: 'food',              label: 'Gıda (Paketli Ürün)' },
-  { value: 'cosmetics',         label: 'Kozmetik / Güzellik Ürünleri' },
-  { value: 'sports',            label: 'Spor Malzemeleri' },
-  { value: 'home_living',       label: 'Ev & Yaşam' },
-  { value: 'jewelry',           label: 'Takı & Aksesuar' },
-  { value: 'rent',              label: 'Araç / Ekipman Kiralama' },
-  { value: 'restaurant_order',  label: 'Restoran (Online Sipariş)' },
+  { value: 'retail',           label: 'Genel Perakende / Giyim' },
+  { value: 'fashion',          label: 'Premium Moda' },
+  { value: 'food',             label: 'Gıda (Paketli Ürün)' },
+  { value: 'cosmetics',        label: 'Kozmetik / Güzellik Ürünleri' },
+  { value: 'sports',           label: 'Spor Malzemeleri' },
+  { value: 'home_living',      label: 'Ev & Yaşam' },
+  { value: 'jewelry',          label: 'Takı & Aksesuar' },
+  { value: 'electronics',      label: 'Elektronik / Teknoloji' },
+  { value: 'books',            label: 'Kitap & Kırtasiye' },
+  { value: 'baby',             label: 'Bebek & Çocuk' },
+  { value: 'pet',              label: 'Evcil Hayvan (Pet Shop)' },
+  { value: 'automotive',       label: 'Otomotiv Aksesuar' },
+  { value: 'toy',              label: 'Oyuncak' },
+  { value: 'rent',             label: 'Araç / Ekipman Kiralama' },
+  { value: 'restaurant_order', label: 'Restoran (Online Sipariş)' },
 ];
 
 const TABS = [
