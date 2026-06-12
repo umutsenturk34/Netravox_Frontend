@@ -8,6 +8,7 @@ import {
   BookOpen, HelpCircle, Package, Tag, Star, UserCircle,
   Megaphone, ClipboardList, ShoppingBag, Settings2, Target, UserCheck,
   Store, Car, FolderOpen, MessageSquare, Boxes, Gift, RefreshCw, BarChart2,
+  Layers,
 } from 'lucide-react';
 
 // ─── Kurumsal Menü ────────────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ const eticaretItems = [
   { label: 'Dashboard',            to: '/dashboard',          icon: LayoutDashboard, module: 'dashboard' },
   { label: 'Ürünler & Hizmetler', to: '/services',            icon: Package,         module: 'services' },
   { label: 'Kategoriler',          to: '/categories',         icon: FolderOpen,      module: 'services' },
+  { label: 'Özellik Grupları',     to: '/attribute-groups',   icon: Layers,          module: 'services' },
   { label: 'Yorumlar',             to: '/reviews',            icon: MessageSquare,   module: 'services' },
   { label: 'Stok Yönetimi',        to: '/stock',              icon: Boxes,           module: 'services' },
   { label: 'Siparişler',           to: '/orders',             icon: ShoppingBag,     module: 'orders',   paymentRequired: true },

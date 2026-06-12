@@ -25,6 +25,7 @@ const emptyForm = {
   image: '',
   order: 0,
   isActive: true,
+  attributeGroups: [],
 };
 
 export default function CategoriesPage() {
@@ -41,6 +42,12 @@ export default function CategoriesPage() {
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['categories', activeTenantId],
     queryFn: () => api.get('/categories').then((r) => r.data),
+    enabled: !!activeTenantId,
+  });
+
+  const { data: attributeGroups = [] } = useQuery({
+    queryKey: ['attribute-groups', activeTenantId],
+    queryFn: () => api.get('/attribute-groups').then((r) => r.data),
     enabled: !!activeTenantId,
   });
 
@@ -99,6 +106,9 @@ export default function CategoriesPage() {
       image: cat.image || '',
       order: cat.order ?? 0,
       isActive: cat.isActive ?? true,
+      attributeGroups: (cat.attributeGroups || []).map(ag =>
+        typeof ag === 'object' ? ag._id : ag
+      ),
     });
     setTab('tr');
     setModal(true);
@@ -228,6 +238,12 @@ export default function CategoriesPage() {
                           style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}
                         >
                           {children.length} alt kategori
+                        </span>
+                      )}
+                      {root.attributeGroups?.length > 0 && (
+                        <span className="text-[11px] px-1.5 py-0.5 rounded-md"
+                          style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
+                          {root.attributeGroups.length} özellik
                         </span>
                       )}
                       {!root.isActive && (
@@ -389,6 +405,52 @@ export default function CategoriesPage() {
             onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
             hint="400×400px"
           />
+
+          {/* Özellik Grupları */}
+          {attributeGroups.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Özellik Grupları
+              </label>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+                Seçilen özellikler bu kategorideki ürün eklerken otomatik çıkar
+              </p>
+              <div className="space-y-1.5">
+                {attributeGroups.map(ag => {
+                  const checked = form.attributeGroups.includes(ag._id);
+                  return (
+                    <label key={ag._id}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-colors"
+                      style={{
+                        borderColor: checked ? '#6366f1' : 'var(--border)',
+                        background: checked ? 'rgba(99,102,241,0.05)' : 'var(--bg-base)',
+                      }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => setForm(f => ({
+                          ...f,
+                          attributeGroups: checked
+                            ? f.attributeGroups.filter(id => id !== ag._id)
+                            : [...f.attributeGroups, ag._id],
+                        }))}
+                        className="accent-indigo-600 w-4 h-4"
+                      />
+                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {ag.name?.tr}
+                      </span>
+                      {ag.values?.length > 0 && (
+                        <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+                          {ag.values.slice(0, 3).map(v => v.tr).join(', ')}
+                          {ag.values.length > 3 ? `... +${ag.values.length - 3}` : ''}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <Input

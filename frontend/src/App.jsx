@@ -39,6 +39,7 @@ import SystemSettingsPage from './pages/SystemSettingsPage';
 import MetaLeadsPage from './pages/MetaLeadsPage';
 import CustomersPage from './pages/CustomersPage';
 import CategoriesPage from './pages/CategoriesPage';
+import AttributeGroupsPage from './pages/AttributeGroupsPage';
 import ReviewsPage from './pages/ReviewsPage';
 import StockPage from './pages/StockPage';
 import GiftCardsPage from './pages/GiftCardsPage';
@@ -102,6 +103,7 @@ export default function App() {
           <Route path="dental/services" element={<ServicesPage />} />
           <Route path="services" element={<ServicesPage />} />
           <Route path="categories" element={<CategoriesPage />} />
+          <Route path="attribute-groups" element={<AttributeGroupsPage />} />
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="stock" element={<StockPage />} />
           <Route path="gift-cards" element={<GiftCardsPage />} />

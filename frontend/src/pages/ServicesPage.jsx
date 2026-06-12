@@ -157,6 +157,10 @@ export default function ServicesPage() {
     enabled: !!activeTenantId && labels.category,
   });
 
+  // Seçili kategorinin özellik gruplarını bul
+  const selectedCategory = categoryOptions.find(c => c._id === form.category);
+  const dynamicGroups = selectedCategory?.attributeGroups || [];
+
   const updateCache = (updater) =>
     qc.setQueryData(['services', activeTenantId], (old) => updater(old || []));
 
@@ -1307,6 +1311,113 @@ export default function ServicesPage() {
               </button>
             </div>
           </FormSection>
+
+          {/* ── Dinamik Özellikler (kategoriye göre) ── */}
+          {dynamicGroups.length > 0 && (
+            <FormSection title="Ürün Özellikleri">
+              {dynamicGroups.map(ag => {
+                const groupId = typeof ag === 'object' ? ag._id : ag;
+                const group = typeof ag === 'object' ? ag : null;
+                if (!group) return null;
+                const currentVal = form.sectorFields?.[groupId] ?? '';
+
+                if (group.inputType === 'boolean') {
+                  return (
+                    <div key={groupId} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id={`ag_${groupId}`}
+                        checked={!!currentVal}
+                        onChange={e => setSF(groupId, e.target.checked)}
+                        className="accent-blue-600 w-4 h-4"
+                      />
+                      <label htmlFor={`ag_${groupId}`} className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                        {group.name?.tr}
+                      </label>
+                    </div>
+                  );
+                }
+
+                if (group.inputType === 'select') {
+                  return (
+                    <div key={groupId}>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                        {group.name?.tr}
+                      </label>
+                      <select
+                        value={currentVal}
+                        onChange={e => setSF(groupId, e.target.value)}
+                        className="w-full rounded-lg px-3.5 py-2.5 border outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontSize: '16px' }}
+                      >
+                        <option value="">— Seçin —</option>
+                        {group.values.map((v, i) => (
+                          <option key={i} value={v.tr}>{v.tr}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                }
+
+                if (group.inputType === 'multiselect') {
+                  const selected = Array.isArray(currentVal) ? currentVal : [];
+                  return (
+                    <div key={groupId}>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                        {group.name?.tr}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {group.values.map((v, i) => {
+                          const isSelected = selected.includes(v.tr);
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setSF(groupId, isSelected
+                                ? selected.filter(s => s !== v.tr)
+                                : [...selected, v.tr]
+                              )}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white border-blue-600'
+                                  : 'border-dashed hover:border-blue-400'
+                              }`}
+                              style={!isSelected ? { borderColor: 'var(--border)', color: 'var(--text-muted)' } : {}}
+                            >
+                              {v.tr}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (group.inputType === 'number') {
+                  return (
+                    <Input
+                      key={groupId}
+                      label={`${group.name?.tr}${group.unit ? ` (${group.unit})` : ''}`}
+                      type="number"
+                      value={currentVal}
+                      onChange={e => setSF(groupId, e.target.value)}
+                      placeholder={group.unit || ''}
+                    />
+                  );
+                }
+
+                return (
+                  <Input
+                    key={groupId}
+                    label={group.name?.tr}
+                    value={currentVal}
+                    onChange={e => setSF(groupId, e.target.value)}
+                    placeholder={group.name?.tr}
+                  />
+                );
+              })}
+            </FormSection>
+          )}
 
           {/* ── SEO ── */}
           <FormSection title="SEO">
