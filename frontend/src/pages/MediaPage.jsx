@@ -21,6 +21,7 @@ function EditModal({ item, onClose, onSave }) {
   const [captionTr, setCaptionTr] = useState(item.caption?.tr || '');
   const [category, setCategory] = useState(item.category || '');
   const [showInGallery, setShowInGallery] = useState(item.showInGallery ?? false);
+  const [isFeatured, setIsFeatured] = useState(item.isFeatured ?? false);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -31,6 +32,7 @@ function EditModal({ item, onClose, onSave }) {
         caption: { tr: captionTr },
         category: category || null,
         showInGallery,
+        isFeatured,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['media'] });
@@ -72,6 +74,24 @@ function EditModal({ item, onClose, onSave }) {
             </div>
             <div className={`w-10 h-6 rounded-full transition-colors relative ${showInGallery ? 'bg-indigo-600' : 'bg-gray-300'}`}>
               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${showInGallery ? 'translate-x-5' : 'translate-x-1'}`} />
+            </div>
+          </div>
+
+          {/* Öne Çıkan Anlar toggle */}
+          <div
+            className="flex items-center justify-between p-3 rounded-lg border cursor-pointer"
+            style={{
+              borderColor: isFeatured ? '#d97706' : 'var(--border)',
+              background: isFeatured ? 'rgba(217,119,6,0.05)' : 'var(--bg-base)',
+            }}
+            onClick={() => setIsFeatured(v => !v)}
+          >
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Öne Çıkan Anlar</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Aktifse Galeri sayfasındaki hero bölümünde görünür</p>
+            </div>
+            <div className={`w-10 h-6 rounded-full transition-colors relative ${isFeatured ? 'bg-amber-600' : 'bg-gray-300'}`}>
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isFeatured ? 'translate-x-5' : 'translate-x-1'}`} />
             </div>
           </div>
 
