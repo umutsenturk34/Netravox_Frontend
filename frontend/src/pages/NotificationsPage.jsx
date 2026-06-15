@@ -78,9 +78,9 @@ export default function NotificationsPage() {
               <div key={r._id} className="px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-muted)] transition-colors" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{r.name}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{r.fullName}</p>
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {r.date} · {r.guestCount} kişi · {r.phone}
+                      {r.date} · {r.partySize} kişi · {r.phone}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">

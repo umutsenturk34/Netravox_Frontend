@@ -389,8 +389,8 @@ export default function DashboardPage() {
             {resData?.data?.map((r) => (
               <div key={r._id} className="flex items-center justify-between px-5 py-3.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                 <div>
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{r.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{r.date} · {r.guestCount} kişi</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{r.fullName}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{r.date} · {r.partySize} kişi</p>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${resStatusColor[r.status] || ''}`}>
                   {resStatusLabel[r.status] || r.status}
