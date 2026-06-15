@@ -9,6 +9,8 @@ import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Skeleton } from '../components/ui/Skeleton';
 
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+
 // Tutarlı mock veri — GA4 bağlanana kadar gösterilir
 function mockAnalytics(seed = '') {
   const h = seed.split('').reduce((a, c) => a + c.charCodeAt(0), 1337) % 1000;
@@ -390,7 +392,7 @@ export default function DashboardPage() {
               <div key={r._id} className="flex items-center justify-between px-5 py-3.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                 <div>
                   <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{r.fullName}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{r.date} · {r.partySize} kişi</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{fmtDate(r.date)} · {r.partySize} kişi</p>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${resStatusColor[r.status] || ''}`}>
                   {resStatusLabel[r.status] || r.status}

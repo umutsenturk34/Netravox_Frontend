@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Skeleton } from '../components/ui/Skeleton';
 
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
 const resStatusLabel = { new: 'Yeni', seen: 'Görüldü', confirmed: 'Onaylandı', rejected: 'Reddedildi', cancelled: 'İptal' };
 const resStatusColor = {
   new: 'bg-blue-100 text-blue-700',
@@ -80,7 +81,7 @@ export default function NotificationsPage() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{r.fullName}</p>
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {r.date} · {r.partySize} kişi · {r.phone}
+                      {fmtDate(r.date)} · {r.partySize} kişi · {r.phone}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
