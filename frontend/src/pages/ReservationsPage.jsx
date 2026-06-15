@@ -573,7 +573,7 @@ export default function ReservationsPage() {
                     <Calendar size={13} style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Masa Ata</p>
+                    <p className="text-[10px] font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Alan / Kat Ata</p>
                     <select
                       value={selected.tableNumber || ''}
                       onChange={(e) => assignTable.mutate({ id: selected._id, tableNumber: e.target.value ? parseInt(e.target.value) : null })}
@@ -595,7 +595,7 @@ export default function ReservationsPage() {
                             const busy = busyKeys.has(`${t.area || ''}:${t.number}`);
                             return (
                               <option key={`${t.area}:${t.number}`} value={t.number} disabled={busy}>
-                                {busy ? '🔴' : '🟢'} Masa {t.number}{t.label ? ` · ${t.label}` : ''} ({t.seats} kişilik)
+                                {busy ? '🔴' : '🟢'} {t.label || `Alan ${t.number}`} ({t.seats} kişilik)
                               </option>
                             );
                           })}
@@ -761,7 +761,7 @@ export default function ReservationsPage() {
                 return (
                   <div>
                     <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                      Masa
+                      Alan / Kat
                       {newResForm.time && <span className="ml-1 font-normal" style={{ color: 'var(--text-muted)' }}>({newResForm.time} için)</span>}
                     </label>
                     <select value={newResForm.tableNumber} onChange={(e) => setNewResForm((f) => ({ ...f, tableNumber: e.target.value }))}
@@ -781,7 +781,7 @@ export default function ReservationsPage() {
                             const busy = newBusyKeys.has(`${t.area || ''}:${t.number}`);
                             return (
                               <option key={`${t.area}:${t.number}`} value={t.number} disabled={busy}>
-                                {busy ? '🔴' : '🟢'} Masa {t.number}{t.label ? ` · ${t.label}` : ''} ({t.seats} kişilik)
+                                {busy ? '🔴' : '🟢'} {t.label || `Alan ${t.number}`} ({t.seats} kişilik)
                               </option>
                             );
                           })}
@@ -789,7 +789,7 @@ export default function ReservationsPage() {
                       ))}
                       {unavailableTables.length > 0 && unavailableTables.map((t) => (
                         <option key={`${t.area}:${t.number}`} value={t.number} disabled>
-                          ⛔ Masa {t.number}{t.label ? ` · ${t.label}` : ''} — bu saatte tanımlı değil
+                          ⛔ {t.label || `Alan ${t.number}`} — bu saatte tanımlı değil
                         </option>
                       ))}
                     </select>
