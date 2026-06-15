@@ -21,7 +21,6 @@ const emptyItem = {
   allergens: [],
 };
 
-const ALLERGENS = ['gluten', 'dairy', 'eggs', 'nuts', 'peanuts', 'soy', 'fish', 'shellfish'];
 
 export default function RestaurantMenuPage() {
   const { toast } = useToast();
@@ -155,13 +154,17 @@ export default function RestaurantMenuPage() {
     });
   };
 
-  const toggleAllergen = (a) => {
-    setItemForm((prev) => ({
-      ...prev,
-      allergens: prev.allergens.includes(a)
-        ? prev.allergens.filter((x) => x !== a)
-        : [...prev.allergens, a],
-    }));
+  const addAllergen = (e) => {
+    if (!['Enter', ','].includes(e.key)) return;
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,/g, '');
+    if (!val || itemForm.allergens.includes(val)) { e.target.value = ''; return; }
+    setItemForm((prev) => ({ ...prev, allergens: [...prev.allergens, val] }));
+    e.target.value = '';
+  };
+
+  const removeAllergen = (a) => {
+    setItemForm((prev) => ({ ...prev, allergens: prev.allergens.filter((x) => x !== a) }));
   };
 
   return (
@@ -437,23 +440,22 @@ export default function RestaurantMenuPage() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Alerjenler</label>
-            <div className="flex flex-wrap gap-2">
-              {ALLERGENS.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => toggleAllergen(a)}
-                  className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                    itemForm.allergens.includes(a)
-                      ? 'bg-orange-100 border-orange-300 text-orange-700'
-                      : 'hover:bg-[var(--bg-muted)]'
-                  }`}
-                  style={!itemForm.allergens.includes(a) ? { borderColor: 'var(--border)', color: 'var(--text-secondary)' } : {}}
-                >
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {itemForm.allergens.map((a) => (
+                <span key={a} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-orange-100 border border-orange-300 text-orange-700">
                   {a}
-                </button>
+                  <button type="button" onClick={() => removeAllergen(a)} className="ml-0.5 hover:text-orange-900 font-bold leading-none">×</button>
+                </span>
               ))}
             </div>
+            <input
+              type="text"
+              placeholder="Alerjen yaz, Enter ile ekle (örn: gluten, fıstık…)"
+              onKeyDown={addAllergen}
+              className="w-full px-3 py-2 rounded-lg border text-sm"
+              style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+            />
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Enter veya virgül ile ekle</p>
           </div>
         </div>
       </Modal>
