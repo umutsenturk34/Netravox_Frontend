@@ -89,9 +89,17 @@ export default function ReservationsPage() {
   const saveSettings = useMutation({
     mutationFn: () => {
       const allSlots = [...new Set(tables.flatMap((t) => t.slots || []))].sort();
+      const processedTables = tables.map((t) => ({
+        ...t,
+        area: t.area || (t.label || '').toLowerCase()
+          .replace(/ş/g,'s').replace(/ı/g,'i').replace(/ğ/g,'g')
+          .replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c')
+          .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') || `masa_${t.number}`,
+        areaLabel: t.areaLabel || t.label || `Alan ${t.number}`,
+      }));
       return Promise.all([
         api.patch(`/companies/${activeTenantId}`, {
-          content: { ...activeCompany?.content, reservationSlots: allSlots, tables },
+          content: { ...activeCompany?.content, reservationSlots: allSlots, tables: processedTables },
         }),
         api.patch(`/companies/${activeTenantId}/features`, { tableCount }),
       ]);
@@ -1134,7 +1142,8 @@ export default function ReservationsPage() {
                                 ))}
                               </div>
                             )}
-                            <div className="flex items-center gap-1.5">
+                            {/* Tek saat ekle */}
+                            <div className="flex items-center gap-1.5 mb-2">
                               <div className="flex items-center rounded-lg border flex-1 overflow-hidden" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
                                 <select value={inp.hour} onChange={(e) => setTableSlotField(i, 'hour', e.target.value)}
                                   className="flex-1 px-2 py-1.5 text-sm font-mono font-semibold outline-none bg-transparent text-center"
@@ -1147,13 +1156,46 @@ export default function ReservationsPage() {
                                 <select value={inp.min} onChange={(e) => setTableSlotField(i, 'min', e.target.value)}
                                   className="flex-1 px-2 py-1.5 text-sm font-mono font-semibold outline-none bg-transparent text-center"
                                   style={{ color: 'var(--text-primary)' }}>
-                                  {['00', '15', '30', '45'].map((m) => <option key={m} value={m}>{m}</option>)}
+                                  {['00', '30'].map((m) => <option key={m} value={m}>{m}</option>)}
                                 </select>
                               </div>
                               <button onClick={() => addTableSlot(i)}
                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
                                 style={{ background: tSlots.includes(slotVal) ? 'var(--bg-muted)' : '#6366f1', color: tSlots.includes(slotVal) ? 'var(--text-muted)' : '#fff' }}>
                                 <Plus size={11} /> Ekle
+                              </button>
+                            </div>
+                            {/* Saat aralığıyla toplu doldur */}
+                            <div className="flex items-center gap-1 rounded-lg p-1.5" style={{ background: 'var(--bg-muted)' }}>
+                              <span className="text-[10px] font-semibold shrink-0" style={{ color: 'var(--text-muted)' }}>Aralık:</span>
+                              <select value={tableSlotInputs[`${i}_rangeStart`] || '09'}
+                                onChange={(e) => setTableSlotInputs((p) => ({ ...p, [`${i}_rangeStart`]: e.target.value }))}
+                                className="flex-1 rounded-md border px-1 py-1 text-xs font-mono outline-none text-center"
+                                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                                {Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0')).map((h) => <option key={h} value={h}>{h}:00</option>)}
+                              </select>
+                              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>–</span>
+                              <select value={tableSlotInputs[`${i}_rangeEnd`] || '21'}
+                                onChange={(e) => setTableSlotInputs((p) => ({ ...p, [`${i}_rangeEnd`]: e.target.value }))}
+                                className="flex-1 rounded-md border px-1 py-1 text-xs font-mono outline-none text-center"
+                                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                                {Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0')).map((h) => <option key={h} value={h}>{h}:00</option>)}
+                              </select>
+                              <button
+                                onClick={() => {
+                                  const start = parseInt(tableSlotInputs[`${i}_rangeStart`] || '9');
+                                  const end   = parseInt(tableSlotInputs[`${i}_rangeEnd`]   || '21');
+                                  if (start >= end) return;
+                                  const newSlots = [];
+                                  for (let h = start; h <= end; h++) {
+                                    newSlots.push(`${String(h).padStart(2,'0')}:00`);
+                                  }
+                                  const merged = [...new Set([...(tables[i]?.slots || []), ...newSlots])].sort();
+                                  updateTable(i, 'slots', merged);
+                                }}
+                                className="px-2 py-1 rounded-md text-[10px] font-semibold shrink-0 transition-colors"
+                                style={{ background: '#6366f1', color: '#fff' }}>
+                                Doldur
                               </button>
                             </div>
                           </div>
