@@ -486,27 +486,24 @@ export default function ReservationsPage() {
                                 className="flex-1 border-l p-1 flex flex-col gap-1"
                                 style={{ borderColor: 'var(--border)', background: isToday(day) ? 'rgba(99,102,241,0.03)' : undefined }}
                               >
-                                {cellRes.map((r) => (
-                                  <button
-                                    key={r._id}
-                                    onClick={() => { setSelectedDate(day); setSelected(r); }}
-                                    className="w-full text-left px-2 py-1 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
-                                    style={{
-                                      background: STATUS[r.status]?.dot === 'bg-green-500' ? '#10b98120' :
-                                                  STATUS[r.status]?.dot === 'bg-blue-500'  ? '#3b82f620' :
-                                                  STATUS[r.status]?.dot === 'bg-yellow-500'? '#f59e0b20' : '#e5e7eb',
-                                      color: 'var(--text-primary)',
-                                      borderLeft: `3px solid ${
-                                        STATUS[r.status]?.dot === 'bg-green-500' ? '#10b981' :
-                                        STATUS[r.status]?.dot === 'bg-blue-500'  ? '#3b82f6' :
-                                        STATUS[r.status]?.dot === 'bg-yellow-500'? '#f59e0b' : '#9ca3af'
-                                      }`,
-                                    }}
-                                  >
-                                    <p className="truncate font-semibold">{r.fullName}</p>
-                                    <p className="truncate" style={{ color: 'var(--text-muted)', fontSize: 10 }}>{r.partySize} kişi</p>
-                                  </button>
-                                ))}
+                                {cellRes.map((r) => {
+                                  const borderColor =
+                                    r.status === 'confirmed' ? '#10b981' :
+                                    r.status === 'new'       ? '#3b82f6' :
+                                    r.status === 'seen'      ? '#f59e0b' :
+                                    r.status === 'rejected'  ? '#ef4444' : '#9ca3af';
+                                  return (
+                                    <button
+                                      key={r._id}
+                                      onClick={() => { setSelectedDate(day); setSelected(r); }}
+                                      className={`w-full text-left px-2 py-1 rounded-lg text-[11px] font-medium transition-all hover:opacity-80 ${STATUS[r.status]?.light || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}
+                                      style={{ borderLeft: `3px solid ${borderColor}` }}
+                                    >
+                                      <p className="truncate font-semibold">{r.fullName}</p>
+                                      <p className="truncate opacity-70" style={{ fontSize: 10 }}>{r.partySize} kişi</p>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             );
                           })}
