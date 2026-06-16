@@ -62,6 +62,7 @@ export default function ReservationsPage() {
 
   const [selectedDate, setSelectedDate] = useState(toDateStr(new Date()));
   const [view, setView]                 = useState('timeline'); // 'timeline' | 'list' | 'week'
+  const [statusTab, setStatusTab]       = useState('active');   // 'active' | 'rejected'
   const [selected, setSelected]         = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [newResOpen, setNewResOpen]     = useState(false);
@@ -147,6 +148,10 @@ export default function ReservationsPage() {
   });
 
   const reservations = data?.data || [];
+  const displayReservations = statusTab === 'rejected'
+    ? reservations.filter((r) => r.status === 'rejected')
+    : reservations.filter((r) => r.status !== 'rejected');
+  const rejectedCount = reservations.filter((r) => r.status === 'rejected').length;
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }) => api.patch(`/reservations/${id}/status`, { status }).then((r) => r.data),
@@ -189,24 +194,24 @@ export default function ReservationsPage() {
 
   // Timeline için kullanılan saatler (veri varsa genişlet)
   const usedSlots = useMemo(() => {
-    if (!reservations.length) return HOURS.slice(24, 46); // 12:00–22:30 default
-    const times = reservations.map((r) => r.time).sort();
+    if (!displayReservations.length) return HOURS.slice(24, 46); // 12:00–22:30 default
+    const times = displayReservations.map((r) => r.time).sort();
     const first = times[0];
     const last  = times[times.length - 1];
     const firstIdx = Math.max(0, HOURS.indexOf(first) - 2);
     const lastIdx  = Math.min(HOURS.length - 1, HOURS.indexOf(last) + 3);
     return HOURS.slice(firstIdx, lastIdx + 1);
-  }, [reservations]);
+  }, [displayReservations]);
 
   // Saat → rezervasyonlar map
   const byTime = useMemo(() => {
     const map = {};
-    for (const r of reservations) {
+    for (const r of displayReservations) {
       if (!map[r.time]) map[r.time] = [];
       map[r.time].push(r);
     }
     return map;
-  }, [reservations]);
+  }, [displayReservations]);
 
   // Slot doluluk: per-table-slot — sadece o saatte tanımlı masalar gösterilir
   const slotOccupancy = useMemo(() => {
@@ -353,16 +358,43 @@ export default function ReservationsPage() {
           ))}
         </div>
 
+        {/* Durum sekmeleri */}
+        <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)' }}>
+          <button
+            onClick={() => setStatusTab('active')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${statusTab === 'active' ? 'shadow-sm' : 'hover:bg-[var(--bg-surface)]'}`}
+            style={statusTab === 'active'
+              ? { background: 'var(--bg-surface)', color: 'var(--text-primary)' }
+              : { color: 'var(--text-muted)' }}
+          >
+            Rezervasyonlar
+          </button>
+          <button
+            onClick={() => setStatusTab('rejected')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${statusTab === 'rejected' ? 'shadow-sm' : 'hover:bg-[var(--bg-surface)]'}`}
+            style={statusTab === 'rejected'
+              ? { background: 'var(--bg-surface)', color: 'var(--text-primary)' }
+              : { color: 'var(--text-muted)' }}
+          >
+            Reddedilenler
+            {rejectedCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">{rejectedCount}</span>
+            )}
+          </button>
+        </div>
+
         {/* Timeline görünümü */}
         {view === 'timeline' && (
           <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
             {isLoading ? (
               <div className="p-12 text-center" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>
-            ) : reservations.length === 0 ? (
+            ) : displayReservations.length === 0 ? (
               <div className="p-12 text-center">
-                <p className="text-3xl mb-3">📅</p>
-                <p className="font-medium" style={{ color: 'var(--text-primary)' }}>Bu gün için rezervasyon yok</p>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Müşteriler rezervasyon yaptığında burada görünür</p>
+                <p className="text-3xl mb-3">{statusTab === 'rejected' ? '🚫' : '📅'}</p>
+                <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {statusTab === 'rejected' ? 'Bu gün için reddedilen rezervasyon yok' : 'Bu gün için rezervasyon yok'}
+                </p>
+                {statusTab === 'active' && <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Müşteriler rezervasyon yaptığında burada görünür</p>}
               </div>
             ) : (
               <div>
@@ -427,7 +459,10 @@ export default function ReservationsPage() {
             {weekLoading ? (
               <div className="p-12 text-center" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>
             ) : (() => {
-              const allWeekRes = weekData?.data || [];
+              const allWeekResRaw = weekData?.data || [];
+              const allWeekRes = statusTab === 'rejected'
+                ? allWeekResRaw.filter((r) => r.status === 'rejected')
+                : allWeekResRaw.filter((r) => r.status !== 'rejected');
               // Bu haftada kullanılan saatleri bul
               const weekSlotSet = new Set(allWeekRes.map((r) => r.time).filter(Boolean));
               const weekSlots = HOURS.filter((h) => weekSlotSet.has(h));
@@ -542,10 +577,12 @@ export default function ReservationsPage() {
                 {isLoading && (
                   <tr><td colSpan={8} className="px-4 py-10 text-center" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</td></tr>
                 )}
-                {!isLoading && reservations.length === 0 && (
-                  <tr><td colSpan={8} className="px-4 py-10 text-center" style={{ color: 'var(--text-muted)' }}>Bu gün için rezervasyon yok</td></tr>
+                {!isLoading && displayReservations.length === 0 && (
+                  <tr><td colSpan={8} className="px-4 py-10 text-center" style={{ color: 'var(--text-muted)' }}>
+                    {statusTab === 'rejected' ? 'Bu gün için reddedilen rezervasyon yok' : 'Bu gün için rezervasyon yok'}
+                  </td></tr>
                 )}
-                {[...reservations].sort((a, b) => a.time.localeCompare(b.time)).map((r) => (
+                {[...displayReservations].sort((a, b) => a.time.localeCompare(b.time)).map((r) => (
                   <tr
                     key={r._id}
                     onClick={() => setSelected(r)}
