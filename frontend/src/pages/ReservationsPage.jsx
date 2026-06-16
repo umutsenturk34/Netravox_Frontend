@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Calendar, List, X, Phone, Mail, Users, Clock, MessageSquare, Check, XCircle, Settings2, Plus, Trash2, UserPlus, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, List, X, Phone, Mail, Users, Clock, MessageSquare, Check, XCircle, Settings2, Plus, Trash2, UserPlus, MapPin, CalendarDays } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import DatePicker from '../components/ui/DatePicker';
@@ -20,7 +20,10 @@ const HOURS = Array.from({ length: 24 }, (_, h) =>
 ).flat();
 
 function toDateStr(date) {
-  return date.toISOString().split('T')[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function formatDateLong(dateStr) {
@@ -28,8 +31,29 @@ function formatDateLong(dateStr) {
   return d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return { day: d.toLocaleDateString('tr-TR', { weekday: 'short' }), date: d.getDate(), month: d.toLocaleDateString('tr-TR', { month: 'short' }) };
+}
+
 function isToday(dateStr) {
   return dateStr === toDateStr(new Date());
+}
+
+function getWeekStart(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const dow = d.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow; // Pazartesi başlangıç
+  d.setDate(d.getDate() + diff);
+  return toDateStr(d);
+}
+
+function getWeekDays(weekStart) {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart + 'T00:00:00');
+    d.setDate(d.getDate() + i);
+    return toDateStr(d);
+  });
 }
 
 export default function ReservationsPage() {
@@ -37,7 +61,7 @@ export default function ReservationsPage() {
   const { activeTenantId, activeCompany, refreshCompany } = useAuth();
 
   const [selectedDate, setSelectedDate] = useState(toDateStr(new Date()));
-  const [view, setView]                 = useState('timeline'); // 'timeline' | 'list'
+  const [view, setView]                 = useState('timeline'); // 'timeline' | 'list' | 'week'
   const [selected, setSelected]         = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [newResOpen, setNewResOpen]     = useState(false);
@@ -101,6 +125,16 @@ export default function ReservationsPage() {
     queryKey: ['reservations', activeTenantId, selectedDate],
     queryFn: () => api.get(`/reservations?date=${selectedDate}&limit=200`).then((r) => r.data),
     enabled: !!activeTenantId,
+  });
+
+  const weekStart = getWeekStart(selectedDate);
+  const weekDays  = getWeekDays(weekStart);
+  const weekEnd   = weekDays[6];
+
+  const { data: weekData, isLoading: weekLoading } = useQuery({
+    queryKey: ['reservations-week', activeTenantId, weekStart],
+    queryFn: () => api.get(`/reservations?startDate=${weekStart}&endDate=${weekEnd}&limit=500`).then((r) => r.data),
+    enabled: !!activeTenantId && view === 'week',
   });
 
   const reservations = data?.data || [];
@@ -244,9 +278,16 @@ export default function ReservationsPage() {
               <button
                 onClick={() => setView('timeline')}
                 className={`p-2 transition-colors ${view === 'timeline' ? 'bg-blue-600 text-white' : 'hover:bg-[var(--bg-muted)]'}`}
-                title="Timeline görünümü"
+                title="Günlük timeline"
               >
                 <Clock size={15} style={view !== 'timeline' ? { color: 'var(--text-secondary)' } : {}} />
+              </button>
+              <button
+                onClick={() => setView('week')}
+                className={`p-2 transition-colors ${view === 'week' ? 'bg-blue-600 text-white' : 'hover:bg-[var(--bg-muted)]'}`}
+                title="Haftalık görünüm"
+              >
+                <CalendarDays size={15} style={view !== 'week' ? { color: 'var(--text-secondary)' } : {}} />
               </button>
               <button
                 onClick={() => setView('list')}
@@ -360,6 +401,71 @@ export default function ReservationsPage() {
                         ))}
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Haftalık görünüm */}
+        {view === 'week' && (
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+            {/* Hafta header */}
+            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                {weekDays[0]} — {weekDays[6]}
+              </p>
+            </div>
+            {weekLoading ? (
+              <div className="p-12 text-center" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>
+            ) : (
+              <div className="grid grid-cols-7 divide-x" style={{ borderColor: 'var(--border)' }}>
+                {weekDays.map((day) => {
+                  const { day: dayName, date: dayNum, month } = formatDateShort(day);
+                  const dayReservations = (weekData?.data || []).filter((r) => {
+                    const rDate = r.date ? r.date.split('T')[0] : '';
+                    return rDate === day;
+                  });
+                  const isSelected = day === selectedDate;
+                  const isTodayDay = isToday(day);
+                  const activeCount = dayReservations.filter((r) => !['rejected','cancelled'].includes(r.status)).length;
+
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => { setSelectedDate(day); setView('timeline'); }}
+                      className="flex flex-col items-center p-3 gap-2 transition-colors hover:bg-[var(--bg-muted)] min-h-[120px]"
+                      style={{
+                        background: isSelected ? 'var(--bg-muted)' : undefined,
+                        borderBottom: isSelected ? '2px solid #6366f1' : '2px solid transparent',
+                      }}
+                    >
+                      <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{dayName}</span>
+                      <span
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isTodayDay ? 'bg-blue-600 text-white' : ''}`}
+                        style={!isTodayDay ? { color: 'var(--text-primary)' } : {}}
+                      >
+                        {dayNum}
+                      </span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{month}</span>
+                      {activeCount > 0 ? (
+                        <div className="w-full space-y-1 mt-1">
+                          <span className="block w-full text-center text-xs font-semibold" style={{ color: '#6366f1' }}>{activeCount} rezervasyon</span>
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {dayReservations.slice(0, 4).map((r) => (
+                              <span key={r._id} className={`w-2 h-2 rounded-full ${STATUS[r.status]?.dot || 'bg-gray-300'}`} title={r.fullName} />
+                            ))}
+                            {dayReservations.length > 4 && (
+                              <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>+{dayReservations.length - 4}</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Boş</span>
+                      )}
+                    </button>
                   );
                 })}
               </div>
