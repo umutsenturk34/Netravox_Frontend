@@ -89,13 +89,14 @@ export default function ReservationsPage() {
   const saveSettings = useMutation({
     mutationFn: () => {
       const allSlots = [...new Set(tables.flatMap((t) => t.slots || []))].sort();
+      const toAreaKey = (s) => (s || '').toLowerCase()
+        .replace(/ş/g,'s').replace(/ı/g,'i').replace(/ğ/g,'g')
+        .replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c')
+        .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
       const processedTables = tables.map((t) => ({
         ...t,
-        area: t.area || (t.label || '').toLowerCase()
-          .replace(/ş/g,'s').replace(/ı/g,'i').replace(/ğ/g,'g')
-          .replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c')
-          .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') || `masa_${t.number}`,
-        areaLabel: t.areaLabel || t.label || `Alan ${t.number}`,
+        area: toAreaKey(t.label) || `masa_${t.number}`,
+        areaLabel: t.label || `Alan ${t.number}`,
       }));
       return Promise.all([
         api.patch(`/companies/${activeTenantId}`, {
