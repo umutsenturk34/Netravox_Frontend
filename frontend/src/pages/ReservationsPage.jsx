@@ -300,89 +300,6 @@ export default function ReservationsPage() {
           ))}
         </div>
 
-        {/* Slot doluluk tablosu */}
-        {slots.length > 0 && (
-          <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
-              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Masa & Saat Doluluk</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {tables.length > 0 ? `${tables.length} masa` : tableCount > 0 ? `${tableCount} masa` : 'kapasite tanımsız'}
-              </p>
-            </div>
-            <div className="p-3 space-y-1.5">
-              {slotOccupancy.map(({ slot, tableStatus, unassigned, booked, available, cap }) => {
-                const hasPerTable = tableStatus !== null;
-                const occupiedTables = hasPerTable ? tableStatus.filter((t) => t.occupied) : [];
-                const isEmpty = booked === 0;
-                const pct = cap > 0 ? booked / cap : 0;
-                const barColor = pct >= 1 ? '#ef4444' : pct >= 0.7 ? '#f59e0b' : '#10b981';
-
-                return (
-                  <div
-                    key={slot}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl"
-                    style={{ background: 'var(--bg-base)', border: `1px solid var(--border)` }}
-                  >
-                    {/* Saat */}
-                    <span className="text-sm font-bold font-mono w-12 flex-shrink-0" style={{ color: 'var(--text-primary)' }}>{slot}</span>
-
-                    {hasPerTable ? (
-                      <div className="flex flex-wrap gap-1.5 flex-1 items-center">
-                        {/* Sadece dolu masalar gösterilir (kırmızı, tıklanabilir) */}
-                        {occupiedTables.map((t) => (
-                          <button
-                            key={t.number}
-                            title={`${t.reservation?.fullName || 'Rezerveli'} — ${t.reservation?.partySize || '?'} kişi`}
-                            onClick={() => t.reservation && setSelected(t.reservation)}
-                            className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg font-medium transition-all hover:scale-105 cursor-pointer"
-                            style={{ background: '#ef444415', color: '#ef4444', border: '1px solid #ef444428' }}
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                            Masa {t.number}{t.label ? ` · ${t.label}` : ''}
-                            {t.reservation?.fullName && <span className="ml-1 opacity-70 truncate max-w-[80px]">{t.reservation.fullName.split(' ')[0]}</span>}
-                          </button>
-                        ))}
-                        {unassigned > 0 && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-lg" style={{ background: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b28' }}>
-                            +{unassigned} atanmadı
-                          </span>
-                        )}
-                        {/* Boş masa özeti veya "rezervasyon yok" */}
-                        {isEmpty ? (
-                          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Rezervasyon yok · {tableStatus.length} masa boş</span>
-                        ) : tableStatus.length - occupiedTables.length > 0 ? (
-                          <span className="text-[11px] px-2 py-0.5 rounded-lg" style={{ background: '#10b98115', color: '#10b981', border: '1px solid #10b98128' }}>
-                            {tableStatus.length - occupiedTables.length} boş
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : (
-                      /* Sayı bazlı */
-                      <div className="flex items-center gap-3 flex-1">
-                        {isEmpty ? (
-                          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Rezervasyon yok</span>
-                        ) : (
-                          <>
-                            <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--bg-muted)' }}>
-                              <div className="h-full rounded-full transition-all" style={{ width: cap > 0 ? `${Math.min(100, pct * 100)}%` : '0%', background: barColor }} />
-                            </div>
-                            <span className="text-xs flex-shrink-0" style={{ color: barColor }}>
-                              {cap > 0 ? `${booked}/${cap} dolu` : `${booked} rezervasyon`}
-                            </span>
-                            {cap > 0 && available > 0 && (
-                              <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{available} boş</span>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Timeline görünümü */}
         {view === 'timeline' && (
           <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
@@ -511,6 +428,85 @@ export default function ReservationsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Slot doluluk tablosu */}
+        {slots.length > 0 && (
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Masa & Saat Doluluk</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {tables.length > 0 ? `${tables.length} masa` : tableCount > 0 ? `${tableCount} masa` : 'kapasite tanımsız'}
+              </p>
+            </div>
+            <div className="p-3 space-y-1.5">
+              {slotOccupancy.map(({ slot, tableStatus, unassigned, booked, available, cap }) => {
+                const hasPerTable = tableStatus !== null;
+                const occupiedTables = hasPerTable ? tableStatus.filter((t) => t.occupied) : [];
+                const isEmpty = booked === 0;
+                const pct = cap > 0 ? booked / cap : 0;
+                const barColor = pct >= 1 ? '#ef4444' : pct >= 0.7 ? '#f59e0b' : '#10b981';
+
+                return (
+                  <div
+                    key={slot}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl"
+                    style={{ background: 'var(--bg-base)', border: `1px solid var(--border)` }}
+                  >
+                    <span className="text-sm font-bold font-mono w-12 flex-shrink-0" style={{ color: 'var(--text-primary)' }}>{slot}</span>
+
+                    {hasPerTable ? (
+                      <div className="flex flex-wrap gap-1.5 flex-1 items-center">
+                        {occupiedTables.map((t) => (
+                          <button
+                            key={t.number}
+                            title={`${t.reservation?.fullName || 'Rezerveli'} — ${t.reservation?.partySize || '?'} kişi`}
+                            onClick={() => t.reservation && setSelected(t.reservation)}
+                            className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg font-medium transition-all hover:scale-105 cursor-pointer"
+                            style={{ background: '#ef444415', color: '#ef4444', border: '1px solid #ef444428' }}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                            Masa {t.number}{t.label ? ` · ${t.label}` : ''}
+                            {t.reservation?.fullName && <span className="ml-1 opacity-70 truncate max-w-[80px]">{t.reservation.fullName.split(' ')[0]}</span>}
+                          </button>
+                        ))}
+                        {unassigned > 0 && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-lg" style={{ background: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b28' }}>
+                            +{unassigned} atanmadı
+                          </span>
+                        )}
+                        {isEmpty ? (
+                          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Rezervasyon yok · {tableStatus.length} masa boş</span>
+                        ) : tableStatus.length - occupiedTables.length > 0 ? (
+                          <span className="text-[11px] px-2 py-0.5 rounded-lg" style={{ background: '#10b98115', color: '#10b981', border: '1px solid #10b98128' }}>
+                            {tableStatus.length - occupiedTables.length} boş
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 flex-1">
+                        {isEmpty ? (
+                          <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Rezervasyon yok</span>
+                        ) : (
+                          <>
+                            <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--bg-muted)' }}>
+                              <div className="h-full rounded-full transition-all" style={{ width: cap > 0 ? `${Math.min(100, pct * 100)}%` : '0%', background: barColor }} />
+                            </div>
+                            <span className="text-xs flex-shrink-0" style={{ color: barColor }}>
+                              {cap > 0 ? `${booked}/${cap} dolu` : `${booked} rezervasyon`}
+                            </span>
+                            {cap > 0 && available > 0 && (
+                              <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{available} boş</span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
