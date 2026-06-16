@@ -164,7 +164,7 @@ export default function CompanySettingsPage() {
     subdomain: '',
     companyType: 'kurumsal',
     sector: 'restaurant',
-    branding: { primaryColor: '#2563EB', secondaryColor: '#1E40AF', logoLight: '', logoDark: '', heroImage: '' },
+    branding: { primaryColor: '#2563EB', secondaryColor: '#1E40AF', logoLight: '', logoDark: '', favicon: '', heroImage: '' },
     settings: { defaultLanguage: 'tr', supportedLanguages: ['tr'] },
     description: { tr: '', en: '' },
     contact: { phone: '', whatsapp: '', email: '', address: '', city: '', country: 'Türkiye', mapUrl: '', mapEmbedUrl: '' },
@@ -211,6 +211,7 @@ export default function CompanySettingsPage() {
           secondaryColor: company.branding?.secondaryColor || '#1E40AF',
           logoLight: company.branding?.logoLight || '',
           logoDark: company.branding?.logoDark || '',
+          favicon: company.branding?.favicon || '',
         },
         settings: {
           defaultLanguage: company.settings?.defaultLanguage || 'tr',
@@ -577,6 +578,7 @@ export default function CompanySettingsPage() {
               </div>
               <ImageUrlInput label="Logo (Açık Tema) URL" value={form.branding.logoLight} onChange={(e) => set('branding.logoLight', e.target.value)} hint="200×60px" />
               <ImageUrlInput label="Logo (Koyu Tema) URL" value={form.branding.logoDark} onChange={(e) => set('branding.logoDark', e.target.value)} hint="200×60px" />
+              <ImageUrlInput label="Favicon URL" value={form.branding.favicon} onChange={(e) => set('branding.favicon', e.target.value)} hint=".ico, .png veya .svg — 32×32px önerilir" />
             </Section>
 
             <Section title="Dil Ayarları">
