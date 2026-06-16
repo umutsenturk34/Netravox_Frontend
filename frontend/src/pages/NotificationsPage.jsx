@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Skeleton } from '../components/ui/Skeleton';
+
+const LIMIT = 10;
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
 const resStatusLabel = { new: 'Yeni', seen: 'Görüldü', confirmed: 'Onaylandı', rejected: 'Reddedildi', cancelled: 'İptal' };
@@ -18,20 +22,56 @@ const formStatusColor = { new: 'bg-blue-100 text-blue-700', seen: 'bg-yellow-100
 const formStatusLabel = { new: 'Yeni', seen: 'Görüldü', replied: 'Yanıtlandı' };
 const formTypeLabel = { contact: 'İletişim', reservation: 'Rezervasyon', other: 'Diğer' };
 
+function Pagination({ page, total, limit, onChange }) {
+  const totalPages = Math.ceil(total / limit);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-t" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        {(page - 1) * limit + 1}–{Math.min(page * limit, total)} / {total}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onChange(page - 1)}
+          disabled={page === 1}
+          className="p-1 rounded hover:bg-[var(--bg-surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <span className="text-xs font-medium px-1" style={{ color: 'var(--text-primary)' }}>
+          {page} / {totalPages}
+        </span>
+        <button
+          onClick={() => onChange(page + 1)}
+          disabled={page === totalPages}
+          className="p-1 rounded hover:bg-[var(--bg-surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function NotificationsPage() {
   const { toast } = useToast();
   const { activeTenantId } = useAuth();
   const qc = useQueryClient();
 
+  const [resPage, setResPage]     = useState(1);
+  const [formsPage, setFormsPage] = useState(1);
+
   const { data: resData, isLoading: resLoading } = useQuery({
-    queryKey: ['reservations', activeTenantId, 'all'],
-    queryFn: () => api.get('/reservations?limit=20').then((r) => r.data),
+    queryKey: ['reservations', activeTenantId, 'notifications', resPage],
+    queryFn: () => api.get(`/reservations?limit=${LIMIT}&page=${resPage}&sort=desc`).then((r) => r.data),
     enabled: !!activeTenantId,
   });
 
   const { data: formsData, isLoading: formsLoading } = useQuery({
-    queryKey: ['forms', activeTenantId, 'all'],
-    queryFn: () => api.get('/forms?limit=20').then((r) => r.data),
+    queryKey: ['forms', activeTenantId, 'notifications', formsPage],
+    queryFn: () => api.get(`/forms?limit=${LIMIT}&page=${formsPage}&sort=desc`).then((r) => r.data),
     enabled: !!activeTenantId,
   });
 
@@ -47,8 +87,10 @@ export default function NotificationsPage() {
     onError: () => toast.error('Güncellenemedi'),
   });
 
-  const newResCount = resData?.data?.filter((r) => r.status === 'new').length || 0;
-  const newFormCount = formsData?.data?.filter((f) => f.status === 'new').length || 0;
+  const newResCount   = resData?.data?.filter((r) => r.status === 'new').length || 0;
+  const newFormCount  = formsData?.data?.filter((f) => f.status === 'new').length || 0;
+  const resTotal      = resData?.total || 0;
+  const formsTotal    = formsData?.total || 0;
 
   return (
     <div>
@@ -67,8 +109,8 @@ export default function NotificationsPage() {
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Rezervasyonlar</h2>
-              {newResCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{newResCount}</span>
+              {resTotal > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{resTotal}</span>
               )}
             </div>
             <Link to="/reservations" className="text-xs text-blue-600 hover:underline">Tümünü gör</Link>
@@ -105,6 +147,7 @@ export default function NotificationsPage() {
               <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Henüz rezervasyon yok</p>
             )}
           </div>
+          <Pagination page={resPage} total={resTotal} limit={LIMIT} onChange={(p) => { setResPage(p); }} />
         </div>
 
         {/* Form Gönderileri */}
@@ -112,8 +155,8 @@ export default function NotificationsPage() {
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Form Gönderileri</h2>
-              {newFormCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{newFormCount}</span>
+              {formsTotal > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-600 text-white">{formsTotal}</span>
               )}
             </div>
             <Link to="/forms" className="text-xs text-blue-600 hover:underline">Tümünü gör</Link>
@@ -151,6 +194,7 @@ export default function NotificationsPage() {
               <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Henüz form gönderisi yok</p>
             )}
           </div>
+          <Pagination page={formsPage} total={formsTotal} limit={LIMIT} onChange={(p) => { setFormsPage(p); }} />
         </div>
       </div>
     </div>
