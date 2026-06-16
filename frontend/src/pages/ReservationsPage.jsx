@@ -394,6 +394,7 @@ export default function ReservationsPage() {
                               </p>
                               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                 {r.partySize} kişi
+                                {r.endTime && ` · – ${r.endTime}`}
                                 {r.note && ' · Not var'}
                               </p>
                             </div>
@@ -549,7 +550,7 @@ export default function ReservationsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>{r.fullName}</td>
-                    <td className="px-4 py-3 font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>{r.time}</td>
+                    <td className="px-4 py-3 font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>{r.time}{r.endTime ? ` – ${r.endTime}` : ''}</td>
                     <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{r.partySize} kişi</td>
                     <td className="px-4 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
                       {[r.tableArea ? (AREA_LABELS[r.tableArea] || r.tableArea) : null, r.tableNumber ? `#${r.tableNumber}` : null].filter(Boolean).join(' · ') || '—'}
@@ -687,7 +688,7 @@ export default function ReservationsPage() {
           {/* Bilgiler */}
           <div className="px-5 py-4 space-y-3 flex-1">
             {[
-              { icon: Clock,          label: 'Tarih & Saat', value: `${new Date(selected.date).toLocaleDateString('tr-TR')} — ${selected.time}` },
+              { icon: Clock,          label: 'Tarih & Saat', value: `${new Date(selected.date).toLocaleDateString('tr-TR')} — ${selected.time}${selected.endTime ? ` – ${selected.endTime}` : ''}` },
               { icon: Users,          label: 'Kişi Sayısı',  value: `${selected.partySize} kişi` },
               { icon: MapPin,         label: 'Masa',          value: [selected.tableArea ? (AREA_LABELS[selected.tableArea] || selected.tableArea) : null, selected.tableNumber ? `Masa #${selected.tableNumber}` : null].filter(Boolean).join(' · ') || '—' },
               { icon: Phone,          label: 'Telefon',       value: selected.phone },
