@@ -408,68 +408,112 @@ export default function ReservationsPage() {
           </div>
         )}
 
-        {/* Haftalık görünüm */}
+        {/* Haftalık görünüm — Google Calendar tarzı */}
         {view === 'week' && (
           <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
-            {/* Hafta header */}
-            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
-              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                {weekDays[0]} — {weekDays[6]}
-              </p>
-            </div>
             {weekLoading ? (
               <div className="p-12 text-center" style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>
-            ) : (
-              <div className="grid grid-cols-7 divide-x" style={{ borderColor: 'var(--border)' }}>
-                {weekDays.map((day) => {
-                  const { day: dayName, date: dayNum, month } = formatDateShort(day);
-                  const dayReservations = (weekData?.data || []).filter((r) => {
-                    const rDate = r.date ? r.date.split('T')[0] : '';
-                    return rDate === day;
-                  });
-                  const isSelected = day === selectedDate;
-                  const isTodayDay = isToday(day);
-                  const activeCount = dayReservations.filter((r) => !['rejected','cancelled'].includes(r.status)).length;
+            ) : (() => {
+              const allWeekRes = weekData?.data || [];
+              // Bu haftada kullanılan saatleri bul
+              const weekSlotSet = new Set(allWeekRes.map((r) => r.time).filter(Boolean));
+              const weekSlots = HOURS.filter((h) => weekSlotSet.has(h));
+              const displaySlots = weekSlots.length > 0 ? weekSlots : [];
 
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => { setSelectedDate(day); setView('timeline'); }}
-                      className="flex flex-col items-center p-3 gap-2 transition-colors hover:bg-[var(--bg-muted)] min-h-[120px]"
-                      style={{
-                        background: isSelected ? 'var(--bg-muted)' : undefined,
-                        borderBottom: isSelected ? '2px solid #6366f1' : '2px solid transparent',
-                      }}
-                    >
-                      <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{dayName}</span>
-                      <span
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isTodayDay ? 'bg-blue-600 text-white' : ''}`}
-                        style={!isTodayDay ? { color: 'var(--text-primary)' } : {}}
-                      >
-                        {dayNum}
-                      </span>
-                      <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{month}</span>
-                      {activeCount > 0 ? (
-                        <div className="w-full space-y-1 mt-1">
-                          <span className="block w-full text-center text-xs font-semibold" style={{ color: '#6366f1' }}>{activeCount} rezervasyon</span>
-                          <div className="flex flex-wrap gap-1 justify-center">
-                            {dayReservations.slice(0, 4).map((r) => (
-                              <span key={r._id} className={`w-2 h-2 rounded-full ${STATUS[r.status]?.dot || 'bg-gray-300'}`} title={r.fullName} />
-                            ))}
-                            {dayReservations.length > 4 && (
-                              <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>+{dayReservations.length - 4}</span>
-                            )}
+              return (
+                <div className="overflow-x-auto">
+                  {/* Gün başlıkları */}
+                  <div className="flex border-b" style={{ borderColor: 'var(--border)', minWidth: 600 }}>
+                    {/* Sol boşluk (saat sütunu için) */}
+                    <div className="w-16 flex-shrink-0" style={{ background: 'var(--bg-muted)' }} />
+                    {weekDays.map((day) => {
+                      const { day: dayName, date: dayNum } = formatDateShort(day);
+                      const isTodayDay = isToday(day);
+                      const isSelected = day === selectedDate;
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => { setSelectedDate(day); setView('timeline'); }}
+                          className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors hover:bg-[var(--bg-muted)] border-l"
+                          style={{
+                            borderColor: 'var(--border)',
+                            borderBottom: isSelected ? '2px solid #6366f1' : undefined,
+                            background: 'var(--bg-muted)',
+                          }}
+                        >
+                          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{dayName}</span>
+                          <span
+                            className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${isTodayDay ? 'bg-blue-600 text-white' : ''}`}
+                            style={!isTodayDay ? { color: 'var(--text-primary)' } : {}}
+                          >
+                            {dayNum}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Saat satırları */}
+                  {displaySlots.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <p className="text-3xl mb-3">📅</p>
+                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>Bu hafta için rezervasyon yok</p>
+                    </div>
+                  ) : (
+                    <div style={{ minWidth: 600 }}>
+                      {displaySlots.map((slot) => (
+                        <div key={slot} className="flex border-b last:border-0" style={{ borderColor: 'var(--border)', minHeight: 52 }}>
+                          {/* Saat sütunu */}
+                          <div
+                            className="w-16 flex-shrink-0 flex items-start pt-3 justify-center text-xs font-mono font-semibold border-r"
+                            style={{ color: 'var(--text-muted)', borderColor: 'var(--border)', background: 'var(--bg-muted)' }}
+                          >
+                            {slot}
                           </div>
+                          {/* 7 gün sütunu */}
+                          {weekDays.map((day) => {
+                            const cellRes = allWeekRes.filter((r) => {
+                              const rDate = r.date ? r.date.split('T')[0] : '';
+                              return rDate === day && r.time === slot;
+                            });
+                            return (
+                              <div
+                                key={day}
+                                className="flex-1 border-l p-1 flex flex-col gap-1"
+                                style={{ borderColor: 'var(--border)', background: isToday(day) ? 'rgba(99,102,241,0.03)' : undefined }}
+                              >
+                                {cellRes.map((r) => (
+                                  <button
+                                    key={r._id}
+                                    onClick={() => { setSelectedDate(day); setSelected(r); }}
+                                    className="w-full text-left px-2 py-1 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
+                                    style={{
+                                      background: STATUS[r.status]?.dot === 'bg-green-500' ? '#10b98120' :
+                                                  STATUS[r.status]?.dot === 'bg-blue-500'  ? '#3b82f620' :
+                                                  STATUS[r.status]?.dot === 'bg-yellow-500'? '#f59e0b20' : '#e5e7eb',
+                                      color: 'var(--text-primary)',
+                                      borderLeft: `3px solid ${
+                                        STATUS[r.status]?.dot === 'bg-green-500' ? '#10b981' :
+                                        STATUS[r.status]?.dot === 'bg-blue-500'  ? '#3b82f6' :
+                                        STATUS[r.status]?.dot === 'bg-yellow-500'? '#f59e0b' : '#9ca3af'
+                                      }`,
+                                    }}
+                                  >
+                                    <p className="truncate font-semibold">{r.fullName}</p>
+                                    <p className="truncate" style={{ color: 'var(--text-muted)', fontSize: 10 }}>{r.partySize} kişi</p>
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          })}
                         </div>
-                      ) : (
-                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Boş</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
