@@ -65,7 +65,7 @@ export default function ReservationsPage() {
   const [selected, setSelected]         = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [newResOpen, setNewResOpen]     = useState(false);
-  const [newResForm, setNewResForm]     = useState({ fullName: '', phone: '', email: '', date: '', time: '', partySize: 2, tableNumber: '', note: '' });
+  const [newResForm, setNewResForm]     = useState({ fullName: '', phone: '', email: '', date: '', time: '', endTime: '', partySize: 2, tableNumber: '', note: '' });
 
   // Masa Düzeni paneli yerel state
   const [tables, setTables]           = useState([]);
@@ -155,12 +155,12 @@ export default function ReservationsPage() {
       setSelectedDate(savedDate);
       qc.invalidateQueries({ queryKey: ['reservations'] });
       setNewResOpen(false);
-      setNewResForm({ fullName: '', phone: '', email: '', date: '', time: '', partySize: 2, tableNumber: '', note: '' });
+      setNewResForm({ fullName: '', phone: '', email: '', date: '', time: '', endTime: '', partySize: 2, tableNumber: '', note: '' });
     },
   });
 
   const assignTable = useMutation({
-    mutationFn: ({ id, tableNumber }) => api.patch(`/reservations/${id}/table`, { tableNumber }).then((r) => r.data),
+    mutationFn: ({ id, tableArea, tableNumber }) => api.patch(`/reservations/${id}/table`, { tableArea, tableNumber }).then((r) => r.data),
     onSuccess: (saved) => {
       qc.invalidateQueries({ queryKey: ['reservations'] });
       setSelected(saved);
@@ -690,7 +690,7 @@ export default function ReservationsPage() {
             {[
               { icon: Clock,          label: 'Tarih & Saat', value: `${new Date(selected.date).toLocaleDateString('tr-TR')} — ${selected.time}${selected.endTime ? ` – ${selected.endTime}` : ''}` },
               { icon: Users,          label: 'Kişi Sayısı',  value: `${selected.partySize} kişi` },
-              { icon: MapPin,         label: 'Masa',          value: [selected.tableArea ? (AREA_LABELS[selected.tableArea] || selected.tableArea) : null, selected.tableNumber ? `Masa #${selected.tableNumber}` : null].filter(Boolean).join(' · ') || '—' },
+              { icon: MapPin,         label: 'Alan / Kat',    value: [selected.tableArea ? (AREA_LABELS[selected.tableArea] || selected.tableArea) : null, selected.tableNumber ? `Masa #${selected.tableNumber}` : null].filter(Boolean).join(' · ') || '—' },
               { icon: Phone,          label: 'Telefon',       value: selected.phone },
               { icon: Mail,           label: 'E-posta',       value: selected.email || '—' },
               { icon: MessageSquare,  label: 'Not',           value: selected.note || '—' },
@@ -706,49 +706,57 @@ export default function ReservationsPage() {
               </div>
             ))}
 
-            {/* Masa atama — sadece masalar tanımlıysa göster */}
+            {/* Alan / Kat atama */}
             {tables.length > 0 && (() => {
-              // Bu saatte hangi masalar dolu? (seçili rezervasyon hariç)
+              const uniqueAreas = [...new Map(
+                tables.filter((t) => t.area).map((t) => [t.area, { area: t.area, label: t.areaLabel || t.area }])
+              ).values()];
               const busyKeys = new Set(
                 (byTime[selected.time] || [])
                   .filter((r) => r._id !== selected._id && r.status !== 'rejected' && r.status !== 'cancelled' && r.tableNumber != null)
                   .map((r) => `${r.tableArea || ''}:${r.tableNumber}`)
               );
+              const areaTablesForSelected = tables.filter((t) => t.area === selected.tableArea);
               return (
                 <div className="flex gap-3">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-muted)' }}>
                     <Calendar size={13} style={{ color: 'var(--text-muted)' }} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Alan / Kat Ata</p>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Alan / Kat Ata</p>
+                    {/* Alan seçici */}
                     <select
-                      value={selected.tableNumber || ''}
-                      onChange={(e) => assignTable.mutate({ id: selected._id, tableNumber: e.target.value ? parseInt(e.target.value) : null })}
+                      value={selected.tableArea || ''}
+                      onChange={(e) => assignTable.mutate({ id: selected._id, tableArea: e.target.value || null, tableNumber: null })}
                       disabled={assignTable.isPending}
                       className="w-full rounded-lg border px-2 py-1.5 text-sm outline-none"
                       style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
                     >
-                      <option value="">— Atanmadı —</option>
-                      {Object.entries(
-                        tables.reduce((acc, t) => {
-                          const key = t.areaLabel || 'Diğer';
-                          if (!acc[key]) acc[key] = [];
-                          acc[key].push(t);
-                          return acc;
-                        }, {})
-                      ).map(([areaLabel, areaTables]) => (
-                        <optgroup key={areaLabel} label={areaLabel}>
-                          {areaTables.map((t) => {
-                            const busy = busyKeys.has(`${t.area || ''}:${t.number}`);
-                            return (
-                              <option key={`${t.area}:${t.number}`} value={t.number} disabled={busy}>
-                                {busy ? '🔴' : '🟢'} {t.label || `Alan ${t.number}`} ({t.seats} kişilik)
-                              </option>
-                            );
-                          })}
-                        </optgroup>
+                      <option value="">— Alan seçin —</option>
+                      {uniqueAreas.map((a) => (
+                        <option key={a.area} value={a.area}>{a.label}</option>
                       ))}
                     </select>
+                    {/* Masa no seçici — alan seçildiyse */}
+                    {selected.tableArea && areaTablesForSelected.length > 0 && (
+                      <select
+                        value={selected.tableNumber || ''}
+                        onChange={(e) => assignTable.mutate({ id: selected._id, tableArea: selected.tableArea, tableNumber: e.target.value ? parseInt(e.target.value) : null })}
+                        disabled={assignTable.isPending}
+                        className="w-full rounded-lg border px-2 py-1.5 text-sm outline-none"
+                        style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                      >
+                        <option value="">— Masa seçin (isteğe bağlı) —</option>
+                        {areaTablesForSelected.map((t) => {
+                          const busy = busyKeys.has(`${t.area || ''}:${t.number}`);
+                          return (
+                            <option key={`${t.area}:${t.number}`} value={t.number} disabled={busy}>
+                              {busy ? '🔴' : '🟢'} {t.label || `Alan ${t.number}`} ({t.seats} kişilik)
+                            </option>
+                          );
+                        })}
+                      </select>
+                    )}
                   </div>
                 </div>
               );
@@ -874,19 +882,10 @@ export default function ReservationsPage() {
                   <p className="text-[11px] mt-0.5" style={{ color: '#ef4444' }}>Geçerli bir e-posta girin</p>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div style={{ position: 'relative', zIndex: 10 }}>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Tarih *</label>
                   <DatePicker value={newResForm.date} onChange={(v) => setNewResForm((f) => ({ ...f, date: v }))} clearable={false} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Saat *</label>
-                  <select value={newResForm.time} onChange={(e) => setNewResForm((f) => ({ ...f, time: e.target.value }))}
-                    className="w-full rounded-xl border px-2 py-2 text-sm outline-none font-mono"
-                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
-                    {slots.length > 0 ? slots.map((s) => <option key={s} value={s}>{s}</option>)
-                      : <option value={newResForm.time}>{newResForm.time || '—'}</option>}
-                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Kişi Sayısı *</label>
@@ -894,6 +893,41 @@ export default function ReservationsPage() {
                     onChange={(e) => setNewResForm((f) => ({ ...f, partySize: parseInt(e.target.value) || 1 }))}
                     className="w-full rounded-xl border px-3 py-2 text-sm outline-none text-center"
                     style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Başlangıç Saati *</label>
+                  <select value={newResForm.time} onChange={(e) => {
+                    const t = e.target.value;
+                    const [h, m] = t.split(':').map(Number);
+                    const start = h * 60 + m;
+                    const def60 = start + 60;
+                    const defEnd = def60 < 1440 ? `${String(Math.floor(def60/60)).padStart(2,'0')}:${String(def60%60).padStart(2,'0')}` : '';
+                    setNewResForm((f) => ({ ...f, time: t, endTime: defEnd }));
+                  }}
+                    className="w-full rounded-xl border px-2 py-2 text-sm outline-none font-mono"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                    {slots.length > 0 ? slots.map((s) => <option key={s} value={s}>{s}</option>)
+                      : <option value={newResForm.time}>{newResForm.time || '—'}</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Bitiş Saati (maks. 2s)</label>
+                  <select value={newResForm.endTime} onChange={(e) => setNewResForm((f) => ({ ...f, endTime: e.target.value }))}
+                    disabled={!newResForm.time}
+                    className="w-full rounded-xl border px-2 py-2 text-sm outline-none font-mono"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                    <option value="">— Seçin —</option>
+                    {newResForm.time && [30,60,90,120].map((add) => {
+                      const [h, m] = newResForm.time.split(':').map(Number);
+                      const total = h * 60 + m + add;
+                      if (total >= 1440) return null;
+                      const opt = `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+                      const lbl = add === 60 ? '1 saat' : add === 120 ? '2 saat' : `${add} dk`;
+                      return <option key={opt} value={opt}>{opt} ({lbl})</option>;
+                    })}
+                  </select>
                 </div>
               </div>
               {tables.length > 0 && (() => {
@@ -969,6 +1003,7 @@ export default function ReservationsPage() {
                   if (!newResForm.fullName || !newResForm.phone || !newResForm.date || !newResForm.time) return;
                   createReservation.mutate({
                     ...newResForm,
+                    endTime: newResForm.endTime || null,
                     tableNumber: newResForm.tableNumber ? parseInt(newResForm.tableNumber) : null,
                   });
                 }}
