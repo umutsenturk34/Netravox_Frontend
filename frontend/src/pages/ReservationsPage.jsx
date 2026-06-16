@@ -168,12 +168,15 @@ export default function ReservationsPage() {
   });
 
   // İstatistikler
-  const stats = useMemo(() => ({
-    total:     reservations.length,
-    guests:    reservations.reduce((s, r) => s + (r.partySize || 0), 0),
-    confirmed: reservations.filter((r) => r.status === 'confirmed').length,
-    pending:   reservations.filter((r) => r.status === 'new' || r.status === 'seen').length,
-  }), [reservations]);
+  const stats = useMemo(() => {
+    const src = view === 'week' ? (weekData?.data || []) : reservations;
+    return {
+      total:     src.length,
+      guests:    src.reduce((s, r) => s + (r.partySize || 0), 0),
+      confirmed: src.filter((r) => r.status === 'confirmed').length,
+      pending:   src.filter((r) => r.status === 'new' || r.status === 'seen').length,
+    };
+  }, [view, reservations, weekData]);
 
   // Timeline için kullanılan saatler (veri varsa genişlet)
   const usedSlots = useMemo(() => {
