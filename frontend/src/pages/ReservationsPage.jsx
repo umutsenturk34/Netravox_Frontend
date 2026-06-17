@@ -181,6 +181,14 @@ export default function ReservationsPage() {
     },
   });
 
+  const updateTime = useMutation({
+    mutationFn: ({ id, endTime }) => api.patch(`/reservations/${id}/time`, { endTime }).then((r) => r.data),
+    onSuccess: (saved) => {
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+      setSelected(saved);
+    },
+  });
+
   // İstatistikler
   const stats = useMemo(() => {
     const src = view === 'week' ? (weekData?.data || []) : reservations;
@@ -733,10 +741,69 @@ export default function ReservationsPage() {
 
           {/* Bilgiler */}
           <div className="px-5 py-4 space-y-3 flex-1">
+            {/* Tarih & Saat satırı — başlangıç + bitiş */}
+            {(() => {
+              const [editEnd, setEditEnd] = (() => { const [s, set] = [selected.__editEnd, (v) => setSelected((p) => ({ ...p, __editEnd: v }))]; return [s, set]; })();
+              const endSlots = slots.filter((s) => s > selected.time);
+              return (
+                <div className="flex gap-3">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-muted)' }}>
+                    <Clock size={13} style={{ color: 'var(--text-muted)' }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Tarih & Saat</p>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                      {new Date(selected.date).toLocaleDateString('tr-TR')} — {selected.time}
+                      {selected.endTime && !editEnd && (
+                        <span style={{ color: 'var(--text-muted)' }}> → {selected.endTime}</span>
+                      )}
+                    </p>
+                    {editEnd ? (
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <select
+                          defaultValue={selected.endTime || ''}
+                          onChange={(e) => {
+                            updateTime.mutate({ id: selected._id, endTime: e.target.value || null });
+                            setEditEnd(false);
+                          }}
+                          disabled={updateTime.isPending}
+                          autoFocus
+                          className="rounded-lg border px-2 py-1 text-xs outline-none"
+                          style={{ background: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                        >
+                          <option value="">— Kaldır —</option>
+                          {endSlots.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                        <button type="button" onClick={() => setEditEnd(false)} className="text-[10px] px-2 py-1 rounded-lg hover:bg-[var(--bg-muted)] transition-colors" style={{ color: 'var(--text-muted)' }}>
+                          İptal
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setEditEnd(true)}
+                        className="mt-1 text-[10px] px-2 py-0.5 rounded-md hover:bg-[var(--bg-muted)] transition-colors"
+                        style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                      >
+                        {selected.endTime ? 'Güncelle' : '+ Bitiş saati ata'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
             {[
-              { icon: Clock,          label: 'Tarih & Saat', value: `${new Date(selected.date).toLocaleDateString('tr-TR')} — ${selected.time}${selected.endTime ? ` – ${selected.endTime}` : ''}` },
               { icon: Users,          label: 'Kişi Sayısı',  value: `${selected.partySize} kişi` },
-              { icon: MapPin,         label: 'Alan / Kat',    value: [selected.tableArea ? (AREA_LABELS[selected.tableArea] || selected.tableArea) : null, selected.tableNumber ? `Masa #${selected.tableNumber}` : null].filter(Boolean).join(' · ') || '—' },
+              { icon: MapPin,         label: 'Alan / Kat',    value: (() => {
+                const areaObj = tables.find((t) => t.area === selected.tableArea);
+                const areaLabel = areaObj?.areaLabel || (selected.tableArea ? (AREA_LABELS[selected.tableArea] || selected.tableArea) : null);
+                const tableObj = selected.tableNumber != null ? tables.find((t) => t.area === selected.tableArea && t.number === selected.tableNumber) : null;
+                const tableLabel = tableObj ? (tableObj.label ? `${tableObj.label} (Masa ${selected.tableNumber})` : `Masa ${selected.tableNumber}`) : (selected.tableNumber != null ? `Masa ${selected.tableNumber}` : null);
+                return [areaLabel, tableLabel].filter(Boolean).join(' · ') || '—';
+              })() },
               { icon: Phone,          label: 'Telefon',       value: selected.phone },
               { icon: Mail,           label: 'E-posta',       value: selected.email || '—' },
               { icon: MessageSquare,  label: 'Not',           value: selected.note || '—' },
