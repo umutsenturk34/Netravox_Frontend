@@ -192,11 +192,12 @@ export default function ReservationsPage() {
   // İstatistikler
   const stats = useMemo(() => {
     const src = view === 'week' ? (weekData?.data || []) : reservations;
+    const active = src.filter((r) => r.status !== 'rejected' && r.status !== 'cancelled');
     return {
-      total:     src.length,
-      guests:    src.reduce((s, r) => s + (r.partySize || 0), 0),
-      confirmed: src.filter((r) => r.status === 'confirmed').length,
-      pending:   src.filter((r) => r.status === 'new' || r.status === 'seen').length,
+      total:     active.length,
+      guests:    active.reduce((s, r) => s + (r.partySize || 0), 0),
+      confirmed: active.filter((r) => r.status === 'confirmed').length,
+      pending:   active.filter((r) => r.status === 'new' || r.status === 'seen').length,
     };
   }, [view, reservations, weekData]);
 
