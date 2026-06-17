@@ -29,7 +29,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
     },
     onSuccess: (uploaded) => {
       qc.invalidateQueries({ queryKey: ['media', activeTenantId] });
-      if (uploaded?.url) setSelected(uploaded.url);
+      if (uploaded?.url) setSelected(uploaded.url); // url = kalıcı
     },
   });
 
@@ -173,7 +173,7 @@ export default function MediaPickerModal({ open, onClose, onSelect }) {
               >
                 {item.mimeType?.startsWith('image/') ? (
                   <img
-                    src={item.thumbnailUrl || item.url}
+                    src={item.signedThumbnailUrl || item.signedUrl || item.thumbnailUrl || item.url}
                     alt={item.originalName}
                     className="w-full h-full object-cover"
                   />
