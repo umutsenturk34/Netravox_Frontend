@@ -45,6 +45,7 @@ import StockPage from './pages/StockPage';
 import GiftCardsPage from './pages/GiftCardsPage';
 import CachePage from './pages/CachePage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ThemeSettingsPage from './pages/ThemeSettingsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import CheckoutFailPage from './pages/CheckoutFailPage';
@@ -96,6 +97,7 @@ export default function App() {
           <Route path="languages" element={<LanguagesPage />} />
           <Route path="settings" element={<CompanySettingsPage />} />
           <Route path="ecommerce-settings" element={<ECommerceSettingsPage />} />
+          <Route path="theme" element={<ThemeSettingsPage />} />
           <Route path="companies" element={<CompaniesPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="roles" element={<SuperAdminRoute><RolesPage /></SuperAdminRoute>} />

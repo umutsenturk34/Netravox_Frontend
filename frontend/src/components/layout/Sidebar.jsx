@@ -8,7 +8,7 @@ import {
   BookOpen, HelpCircle, Package, Tag, Star, UserCircle,
   Megaphone, ClipboardList, ShoppingBag, Settings2, Target, UserCheck,
   Store, Car, FolderOpen, MessageSquare, Boxes, Gift, RefreshCw, BarChart2,
-  Layers,
+  Layers, Palette,
 } from 'lucide-react';
 
 // ─── Kurumsal Menü ────────────────────────────────────────────────────────────
@@ -81,6 +81,7 @@ const eticaretItems = [
   { label: 'Restoran Menüsü',      to: '/restaurant/menu',    icon: UtensilsCrossed, module: 'restaurant',   sectors: ['restaurant_order'] },
 
   { section: 'Ayarlar' },
+  { label: 'Tema Ayarları',         to: '/theme',              icon: Palette,         module: 'settings' },
   { label: 'E-Ticaret Ayarları',   to: '/ecommerce-settings', icon: Store,           module: 'orders' },
   { label: 'SEO',                  to: '/seo',                icon: Search,          module: 'seo' },
   { label: 'Redirect',             to: '/redirects',          icon: ArrowRightLeft,  module: 'redirects' },

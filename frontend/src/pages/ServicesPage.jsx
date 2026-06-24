@@ -7,11 +7,10 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Input, Textarea, Select, ImageUrlInput } from '../components/ui/Input';
 import EmptyState from '../components/ui/EmptyState';
+import VariantBuilder from '../components/ui/VariantBuilder';
+import ProductCardPreview from '../components/ui/ProductCardPreview';
 import { Tag, X } from 'lucide-react';
 
-const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
-const ICONS = ['🦷', '🔬', '💎', '🩺', '✨', '🎯', '🏥', '💉', '👕', '🧥', '🧢', '👜', '⭐', '🎁', '📦', '🛍️', '🚗', '🚙', '🏎️', '🚌', '⚡'];
 
 // extra: 'dental' | 'fitness' | 'education' | 'realEstate' | null
 const SECTOR_LABELS = {
@@ -30,22 +29,22 @@ const SECTOR_LABELS = {
   service:      { page: 'Hizmetler',              item: 'Hizmet', placeholder: 'Hizmet adı',             sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
   other:        { page: 'Ürünler & Hizmetler',    item: 'Ürün',   placeholder: 'Ürün/Hizmet adı',      sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                           extra: null         },
   // ── E-ticaret ──
-  rent:             { page: 'Araç Filosu',   item: 'Araç', placeholder: 'Toyota Corolla',            sizes: false, material: false, vehicle: true,  category: true,  sku: false, badge: true,  gallery: false, categoryPlaceholder: 'SUV, Sedan, Van...',            extra: null         },
-  retail:           { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'T-Shirts, Hoodies...',          extra: null         },
-  fashion:          { page: 'Koleksiyon',    item: 'Ürün', placeholder: 'Ürün adı',                  sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Elbiseler, Pantolonlar...',     extra: null         },
-  food:             { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Atıştırmalıklar, İçecekler...', extra: null        },
-  cosmetics:        { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Cilt Bakım, Makyaj...',         extra: null         },
-  sports:           { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: true,  material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Ayakkabı, Forma, Ekipman...',   extra: null         },
-  home_living:      { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Mobilya, Tekstil, Dekor...',    extra: null         },
-  jewelry:          { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Yüzük, Kolye, Bileklik...',    extra: null         },
-  restaurant_order: { page: 'Ürünler',            item: 'Ürün',  placeholder: 'Ürün adı',          sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: true,  categoryPlaceholder: 'Başlangıçlar, Ana Yemekler...', extra: null },
-  electronics:      { page: 'Ürünler',            item: 'Ürün',  placeholder: 'iPhone 15, Laptop...', sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Telefon, Bilgisayar, TV...',    extra: null },
-  books:            { page: 'Kitaplar & Ürünler', item: 'Ürün',  placeholder: 'Kitap adı...',         sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Roman, Bilim, Çocuk...',        extra: null },
-  baby:             { page: 'Bebek & Çocuk',       item: 'Ürün',  placeholder: 'Ürün adı...',          sizes: true,  material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Giyim, Oyuncak, Bakım...',      extra: null },
-  pet:              { page: 'Evcil Hayvan',         item: 'Ürün',  placeholder: 'Ürün adı...',          sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Kedi, Köpek, Kuş...',           extra: null },
-  automotive:       { page: 'Otomotiv',             item: 'Ürün',  placeholder: 'Ürün adı...',          sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Yağ, Filtre, Aksesuar...',      extra: null },
-  toy:              { page: 'Oyuncaklar',           item: 'Oyuncak', placeholder: 'Oyuncak adı...',     sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  categoryPlaceholder: 'Lego, Bebek, Eğitici...',       extra: null },
-  default:          { page: 'Ürünler & Hizmetler', item: 'Ürün',  placeholder: 'Ürün/Hizmet adı',     sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, categoryPlaceholder: '',                              extra: null },
+  rent:             { page: 'Araç Filosu',   item: 'Araç', placeholder: 'Toyota Corolla',            sizes: false, material: false, vehicle: true,  category: true,  sku: false, badge: true,  gallery: false, variants: false, categoryPlaceholder: 'SUV, Sedan, Van...',            extra: null         },
+  retail:           { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'T-Shirts, Hoodies...',          extra: null         },
+  fashion:          { page: 'Koleksiyon',    item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Elbiseler, Pantolonlar...',     extra: null         },
+  food:             { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Atıştırmalıklar, İçecekler...', extra: null        },
+  cosmetics:        { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Cilt Bakım, Makyaj...',         extra: null         },
+  sports:           { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Ayakkabı, Forma, Ekipman...',   extra: null         },
+  home_living:      { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Mobilya, Tekstil, Dekor...',    extra: null         },
+  jewelry:          { page: 'Ürünler',       item: 'Ürün', placeholder: 'Ürün adı',                  sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Yüzük, Kolye, Bileklik...',    extra: null         },
+  restaurant_order: { page: 'Ürünler',            item: 'Ürün',  placeholder: 'Ürün adı',          sizes: false, material: false, vehicle: false, category: true,  sku: false, badge: false, gallery: true,  variants: false, categoryPlaceholder: 'Başlangıçlar, Ana Yemekler...', extra: null },
+  electronics:      { page: 'Ürünler',            item: 'Ürün',  placeholder: 'iPhone 15, Laptop...', sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Telefon, Bilgisayar, TV...',    extra: null },
+  books:            { page: 'Kitaplar & Ürünler', item: 'Ürün',  placeholder: 'Kitap adı...',         sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Roman, Bilim, Çocuk...',        extra: null },
+  baby:             { page: 'Bebek & Çocuk',       item: 'Ürün',  placeholder: 'Ürün adı...',          sizes: false, material: true,  vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Giyim, Oyuncak, Bakım...',      extra: null },
+  pet:              { page: 'Evcil Hayvan',         item: 'Ürün',  placeholder: 'Ürün adı...',          sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Kedi, Köpek, Kuş...',           extra: null },
+  automotive:       { page: 'Otomotiv',             item: 'Ürün',  placeholder: 'Ürün adı...',          sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Yağ, Filtre, Aksesuar...',      extra: null },
+  toy:              { page: 'Oyuncaklar',           item: 'Oyuncak', placeholder: 'Oyuncak adı...',     sizes: false, material: false, vehicle: false, category: true,  sku: true,  badge: true,  gallery: true,  variants: true,  categoryPlaceholder: 'Lego, Bebek, Eğitici...',       extra: null },
+  default:          { page: 'Ürünler & Hizmetler', item: 'Ürün',  placeholder: 'Ürün/Hizmet adı',     sizes: false, material: false, vehicle: false, category: false, sku: false, badge: false, gallery: false, variants: false, categoryPlaceholder: '',                              extra: null },
 };
 
 const FUEL_TYPES    = ['Benzin', 'Dizel', 'Hibrit', 'Elektrik', 'LPG', 'Benzin+LPG'];
@@ -91,38 +90,9 @@ const emptyService = {
     fuel: '', transmission: '', seats: '', luggage: '', class: '', mileage: '',
   },
   sectorFields: {},
+  variants: [],
 };
 
-// 3-state cycle: none → instock → outofstock → none
-function getSizeState(sizes, name) {
-  const found = (sizes || []).find(s => s.name === name);
-  if (!found) return 'none';
-  return found.inStock ? 'instock' : 'outofstock';
-}
-function toggleSize(sizes, name) {
-  const state = getSizeState(sizes, name);
-  if (state === 'none')       return [...sizes, { name, inStock: true }];
-  if (state === 'instock')    return sizes.map(s => s.name === name ? { ...s, inStock: false } : s);
-  return sizes.filter(s => s.name !== name);
-}
-
-function SizeChip({ name, state, onClick }) {
-  const styles = {
-    none:       'border border-dashed text-[var(--text-muted)] hover:border-green-400 hover:text-green-600',
-    instock:    'bg-green-500 text-white border border-green-500',
-    outofstock: 'bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 border border-red-300 dark:border-red-700 line-through',
-  };
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={state === 'none' ? 'Eklemek için tıkla' : state === 'instock' ? 'Stok yok yapmak için tıkla' : 'Kaldırmak için tıkla'}
-      className={`w-11 h-11 rounded-lg text-xs font-bold transition-all ${styles[state]}`}
-    >
-      {name}
-    </button>
-  );
-}
 
 function FormSection({ title, children }) {
   return (
@@ -145,7 +115,6 @@ export default function ServicesPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyService);
   const [tab, setTab] = useState('tr');
-  const [customSize, setCustomSize] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [galleryInput, setGalleryInput] = useState('');
   const [filterSearch,   setFilterSearch]   = useState('');
@@ -163,7 +132,13 @@ export default function ServicesPage() {
     enabled: !!activeTenantId && labels.category,
   });
 
-  // Seçili kategorinin özellik gruplarını bul
+  const { data: attributeGroups = [] } = useQuery({
+    queryKey: ['attribute-groups', activeTenantId],
+    queryFn: () => api.get('/attribute-groups').then((r) => r.data),
+    enabled: !!activeTenantId && !!labels.variants,
+  });
+
+  // Seçili kategorinin özellik gruplarını bul (ürün özellik alanları için)
   const selectedCategory = categoryOptions.find(c => c._id === form.category);
   const dynamicGroups = selectedCategory?.attributeGroups || [];
 
@@ -261,6 +236,14 @@ export default function ServicesPage() {
       sectorFields: svc.sectorFields
         ? Object.fromEntries(Object.entries(svc.sectorFields))
         : {},
+      variants: (svc.variants || []).map((v) => ({
+        ...v,
+        attributes: v.attributes
+          ? (v.attributes instanceof Map
+              ? Object.fromEntries(v.attributes)
+              : v.attributes)
+          : {},
+      })),
     });
     setTab('tr');
     setModal(true);
@@ -269,7 +252,6 @@ export default function ServicesPage() {
   function closeModal() {
     setModal(false);
     setEditing(null);
-    setCustomSize('');
     setTagInput('');
     setGalleryInput('');
   }
@@ -277,13 +259,6 @@ export default function ServicesPage() {
   const set = (key, val) => setForm((p) => ({ ...p, [key]: val }));
   const setNested = (key, l, val) => setForm((p) => ({ ...p, [key]: { ...p[key], [l]: val } }));
   const setSF = (key, val) => setForm((p) => ({ ...p, sectorFields: { ...p.sectorFields, [key]: val } }));
-
-  function addCustomSize() {
-    const name = customSize.trim().toUpperCase();
-    if (!name || form.sizes.find(s => s.name === name)) return;
-    set('sizes', [...form.sizes, { name, inStock: true }]);
-    setCustomSize('');
-  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -915,80 +890,13 @@ export default function ServicesPage() {
             </FormSection>
           )}
 
-          {/* ── Bedenler (sadece ürün sektörlerinde) ── */}
-          {labels.sizes && (
-            <FormSection title="Bedenler ve Stok Durumu">
-              <div className="flex items-center gap-3 flex-wrap text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" /> Stokta var</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200 inline-block" /> Stok yok</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-dashed border-current inline-block" style={{ color: 'var(--text-muted)' }} /> Eklenmemiş</span>
-                <span className="ml-auto opacity-60">Tıklayarak durum değiştir</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {DEFAULT_SIZES.map(name => (
-                  <SizeChip
-                    key={name}
-                    name={name}
-                    state={getSizeState(form.sizes, name)}
-                    onClick={() => set('sizes', toggleSize(form.sizes, name))}
-                  />
-                ))}
-                {/* Özel bedenler */}
-                {form.sizes
-                  .filter(s => !DEFAULT_SIZES.includes(s.name))
-                  .map(s => (
-                    <SizeChip
-                      key={s.name}
-                      name={s.name}
-                      state={getSizeState(form.sizes, s.name)}
-                      onClick={() => set('sizes', toggleSize(form.sizes, s.name))}
-                    />
-                  ))
-                }
-              </div>
-              {/* Özel beden ekle */}
-              <div className="flex gap-2 items-center mt-1">
-                <input
-                  type="text"
-                  value={customSize}
-                  onChange={e => setCustomSize(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomSize())}
-                  placeholder="Özel beden (örn: 3XL, ONE SIZE...)"
-                  className="flex-1 text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
-                />
-                <button
-                  type="button"
-                  onClick={addCustomSize}
-                  className="text-sm px-3 py-2 rounded-lg font-medium transition-colors bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100"
-                >
-                  + Ekle
-                </button>
-              </div>
-            </FormSection>
-          )}
-
-          {/* ── Beden Rehberi (sadece ürün sektörlerinde) ── */}
-          {labels.sizes && (
-            <FormSection title="Beden Rehberi">
-              <p className="text-xs -mt-1" style={{ color: 'var(--text-muted)' }}>
-                Web sitesinde "Beden Rehberi" linkine tıklandığında açılır. Her ürün için farklı rehber tanımlayabilirsiniz.
-              </p>
-              <Textarea
-                label={tab === 'tr' ? 'Beden Rehberi İçeriği (Türkçe)' : 'Size Guide Content (English)'}
-                value={form.sizeGuide[tab]}
-                onChange={(e) => setNested('sizeGuide', tab, e.target.value)}
-                rows={3}
-                placeholder={tab === 'tr'
-                  ? 'XS: Göğüs 80–84 cm, Bel 60–64 cm\nS: Göğüs 84–88 cm, Bel 64–68 cm\n...'
-                  : 'XS: Chest 80–84 cm, Waist 60–64 cm\nS: Chest 84–88 cm, Waist 64–68 cm\n...'}
-              />
-              <ImageUrlInput
-                label="Beden Rehberi Görsel URL (isteğe bağlı)"
-                value={form.sizeGuideImage}
-                onChange={(e) => set('sizeGuideImage', e.target.value)}
-                placeholder="https://... (tablo görseli)"
-                hint="800×500px"
+          {/* ── Varyantlar (tüm e-ticaret ürün sektörlerinde) ── */}
+          {labels.variants && (
+            <FormSection title="Varyantlar">
+              <VariantBuilder
+                attributeGroups={attributeGroups}
+                variants={form.variants}
+                onChange={(v) => set('variants', v)}
               />
             </FormSection>
           )}
@@ -1079,22 +987,7 @@ export default function ServicesPage() {
               </Select>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>İkon</label>
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {ICONS.map((ic) => (
-                  <button type="button" key={ic} onClick={() => set('icon', ic)}
-                    className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all ${form.icon === ic ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-[var(--bg-muted)]'}`}>
-                    {ic}
-                  </button>
-                ))}
-              </div>
-              <Input
-                placeholder="veya buraya emoji yapıştır"
-                value={form.icon}
-                onChange={(e) => set('icon', e.target.value)}
-              />
-            </div>
+            <ProductCardPreview form={form} themeSettings={activeCompany?.themeSettings} />
 
             <ImageUrlInput
               label="Ana Görsel URL"
