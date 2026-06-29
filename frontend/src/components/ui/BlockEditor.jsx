@@ -21,7 +21,7 @@ function VideoPickerInput({ label, value, onChange, hint }) {
         {value && (
           <button type="button" onClick={() => onChange('')} className="text-xs shrink-0 hover:opacity-70" style={{ color: 'var(--text-muted)' }}>✕</button>
         )}
-        <button type="button" onClick={() => setOpen(true)} className="shrink-0 rounded px-2 py-1 text-xs font-medium transition hover:opacity-80" style={{ background: 'var(--primary)', color: '#fff' }}>
+        <button type="button" onClick={() => setOpen(true)} className="shrink-0 rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-blue-700">
           {value ? 'Değiştir' : 'Video Seç / Yükle'}
         </button>
       </div>
