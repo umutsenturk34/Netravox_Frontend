@@ -6,6 +6,30 @@ import {
 } from 'lucide-react';
 import { ImageUrlInput, Input, Textarea, Select } from './Input';
 import RichTextEditor from './RichTextEditor';
+import MediaPickerModal from './MediaPickerModal';
+
+function VideoPickerInput({ label, value, onChange, hint }) {
+  const [open, setOpen] = useState(false);
+  const filename = value ? value.split('/').pop() : null;
+  return (
+    <div className="flex flex-col gap-1.5">
+      {label && <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{label}</label>}
+      <div className="flex items-center gap-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--border)', background: 'var(--bg-muted)' }}>
+        <span className="flex-1 truncate text-xs" style={{ color: value ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+          {filename || 'Video seçilmedi'}
+        </span>
+        {value && (
+          <button type="button" onClick={() => onChange('')} className="text-xs shrink-0 hover:opacity-70" style={{ color: 'var(--text-muted)' }}>✕</button>
+        )}
+        <button type="button" onClick={() => setOpen(true)} className="shrink-0 rounded px-2 py-1 text-xs font-medium transition hover:opacity-80" style={{ background: 'var(--primary)', color: '#fff' }}>
+          {value ? 'Değiştir' : 'Video Seç / Yükle'}
+        </button>
+      </div>
+      {hint && <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{hint}</p>}
+      <MediaPickerModal open={open} onClose={() => setOpen(false)} onSelect={(url) => { onChange(url); setOpen(false); }} />
+    </div>
+  );
+}
 
 // ── Block type definitions ─────────────────────────────────────────────────
 export const BLOCK_TYPES = [
@@ -25,7 +49,7 @@ function emptyBlock(type) {
   const base = { type, order: 0, data: {} };
   switch (type) {
     case 'hero':
-      return { ...base, data: { image: '', title: { tr: '', en: '' }, subtitle: { tr: '', en: '' }, overlay: 0.5, cta: [] } };
+      return { ...base, data: { image: '', video: '', title: { tr: '', en: '' }, subtitle: { tr: '', en: '' }, overlay: 0.5, cta: [] } };
     case 'richtext':
       return { ...base, data: { content: { tr: '', en: '' } } };
     case 'gallery':
@@ -70,7 +94,8 @@ function HeroBlockEditor({ data, onChange, lang }) {
   return (
     <div className="space-y-4">
       <Input label="Üst Etiket (Eyebrow)" value={d.eyebrow || ''} onChange={(e) => set('eyebrow', e.target.value)} placeholder="Kartepe / Kocaeli" />
-      <ImageUrlInput label="Arka Plan Görseli" value={d.image || ''} onChange={(e) => set('image', e.target.value)} hint="1600×900px önerilen" />
+      <ImageUrlInput label="Arka Plan Görseli" value={d.image || ''} onChange={(e) => set('image', e.target.value)} hint="1600×900px önerilen — video yüklenirse görsel kullanılmaz" />
+      <VideoPickerInput label="Arka Plan Videosu (MP4)" value={d.video || ''} onChange={(url) => set('video', url)} hint="S3'ten yüklenen MP4 — sessiz & otomatik oynar, görsel varsa video önceliklidir" />
       <Input label={`Başlık (${lang.toUpperCase()})`} value={d.title?.[lang] || ''} onChange={(e) => setLang('title', e.target.value)} placeholder="Ana başlık..." />
       <Textarea rows={2} label={`Alt Başlık (${lang.toUpperCase()})`} value={d.subtitle?.[lang] || ''} onChange={(e) => setLang('subtitle', e.target.value)} placeholder="Açıklama metni..." />
       <div className="flex gap-2">
