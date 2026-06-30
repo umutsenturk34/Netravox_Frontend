@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Calendar, List, X, Phone, Mail, Users, Clock, MessageSquare, Check, XCircle, Settings2, Plus, Trash2, UserPlus, MapPin, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, List, X, Phone, Mail, Users, Clock, MessageSquare, Check, XCircle, Settings2, Plus, Trash2, UserPlus, MapPin, CalendarDays, Download } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import DatePicker from '../components/ui/DatePicker';
@@ -66,6 +66,8 @@ export default function ReservationsPage() {
   const [selected, setSelected]         = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [newResOpen, setNewResOpen]     = useState(false);
+  const [exportOpen, setExportOpen]     = useState(false);
+  const [exporting, setExporting]       = useState(false);
   const [newResForm, setNewResForm]     = useState({ fullName: '', phone: '', email: '', date: '', time: '', endTime: '', partySize: 2, tableNumber: '', note: '' });
 
   // Masa Düzeni paneli yerel state
@@ -188,6 +190,38 @@ export default function ReservationsPage() {
       setSelected(saved);
     },
   });
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const close = () => setExportOpen(false);
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [exportOpen]);
+
+  const handleExport = async (period) => {
+    setExporting(true);
+    setExportOpen(false);
+    try {
+      const res = await api.get('/reservations/export', {
+        params: { period },
+        responseType: 'blob',
+      });
+      const url  = URL.createObjectURL(res.data);
+      const link = document.createElement('a');
+      const cd   = res.headers['content-disposition'] || '';
+      const match = cd.match(/filename="?([^"]+)"?/);
+      link.href     = url;
+      link.download = match ? match[1] : `rezervasyonlar-${period}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Excel oluşturulurken hata oluştu.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // İstatistikler
   const stats = useMemo(() => {
@@ -333,6 +367,42 @@ export default function ReservationsPage() {
               <UserPlus size={14} />
               <span className="hidden sm:inline">Yeni Rezervasyon</span>
             </button>
+
+            {/* Excel İndir */}
+            <div className="relative">
+              <button
+                onClick={() => setExportOpen((o) => !o)}
+                disabled={exporting}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-colors hover:bg-[var(--bg-muted)]"
+                style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}
+                title="Excel raporu indir"
+              >
+                <Download size={14} />
+                <span className="hidden sm:inline">{exporting ? 'İndiriliyor…' : 'Excel'}</span>
+              </button>
+              {exportOpen && (
+                <div
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="absolute right-0 top-full mt-1 z-50 rounded-xl border shadow-lg overflow-hidden"
+                  style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', minWidth: 150 }}
+                >
+                  {[
+                    { label: 'Bugün',    period: 'daily'   },
+                    { label: 'Bu Hafta', period: 'weekly'  },
+                    { label: 'Bu Ay',    period: 'monthly' },
+                  ].map(({ label, period }) => (
+                    <button
+                      key={period}
+                      onClick={() => handleExport(period)}
+                      className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-[var(--bg-muted)]"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Masa Düzeni */}
             <button
